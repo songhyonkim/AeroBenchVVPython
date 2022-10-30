@@ -155,7 +155,7 @@ def main():
     # 输出控制指令数据到csv
     cmd_list = [res['throttle_list'], res['ele_list'], res['ali_list'], res['rud_list']]
     cmd_array = np.array(cmd_list).T
-    column = ['throttle', 'elevator', 'aileron', 'rudder']
+    column = ['throttle12', 'elevator', 'aileron', 'rudder']
     cmd_data = pd.DataFrame(columns=column, data=cmd_array)
     cmd_data.to_csv('cmd_data.csv')
 
