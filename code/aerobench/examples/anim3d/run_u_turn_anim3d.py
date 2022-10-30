@@ -122,6 +122,13 @@ def main():
     print(f"Made {alt_filename}")
     plt.close()
 
+    # 输出throttle控制指令
+    plot.plot_cmd(res, 'throttle_list', title='Throttle')
+    alt_filename = 'waypoint_throttle.png'
+    plt.savefig(alt_filename)
+    print(f"Made {alt_filename}")
+    plt.close()
+
     plot.plot_overhead(res, waypoints=waypoints)
     overhead_filename = 'waypoint_overhead.png'
     plt.savefig(overhead_filename)

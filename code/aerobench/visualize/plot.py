@@ -234,6 +234,32 @@ def plot_single(run_sim_result, state_name, title=None):
 
     plt.tight_layout()
 
+# plot cmd signal
+def plot_cmd(run_sim_result, state_name, title=None):
+    'plot a single cmd signal over time'
+
+    init_plot()
+
+    res = run_sim_result
+    fig = plt.figure(figsize=(7, 5))
+
+    ax = fig.add_subplot(1, 1, 1)
+    ax.ticklabel_format(useOffset=False)
+
+    times = res['times']
+    ys = res[state_name]
+
+    ax.plot(times, ys, '-')
+
+    ax.set_ylabel(state_name)
+    ax.set_xlabel('Time')
+
+    if title is not None:
+        ax.set_title(title)
+
+    plt.tight_layout()
+
+
 def plot_altitude(run_sim_result):
     '''altitude over time plot from run_f16_sum result object
 
