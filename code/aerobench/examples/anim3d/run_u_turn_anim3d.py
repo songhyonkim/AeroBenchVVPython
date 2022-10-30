@@ -5,7 +5,8 @@ plots 3d animation for 'u_turn' scenario
 '''
 
 import sys
-
+import csv
+import pandas as pd
 import numpy as np
 from numpy import deg2rad
 
@@ -137,7 +138,7 @@ def main():
     plt.close()
 
      # 输出aileron控制指令
-    plot.plot_cmd(res, 'ail_list', title='Aileron')
+    plot.plot_cmd(res, 'ali_list', title='Aileron')
     alt_filename = 'waypoint_aileron.png'
     plt.savefig(alt_filename)
     print(f"Made {alt_filename}")
@@ -149,6 +150,12 @@ def main():
     plt.savefig(alt_filename)
     print(f"Made {alt_filename}")
     plt.close()
+
+    # 输出控制指令数据到csv
+    cmd_list = [res['throttle_list'], res['ele_list'], res['ali_list'], res['rud_list']]
+    column = ['throttle', 'elevator', 'aileron', 'rudder']
+    cmd_data = pd.DataFrame(columns=column, data=cmd_list)
+    cmd_data.to_csv('cmd_data.csv')
 
     plot.plot_overhead(res, waypoints=waypoints)
     overhead_filename = 'waypoint_overhead.png'
