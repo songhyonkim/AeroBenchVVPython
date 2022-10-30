@@ -63,7 +63,13 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
         xd, u, Nz, ps, Ny_r = get_extended_states(ap, times[-1], states[-1], model_str, v2_integrators)
 
         xd_list = [xd]
+
         u_list = [u]
+        throttle_list = [u[0]]
+        ele_list = [u[1]]
+        ali_list = [u[2]]
+        rud_list = [u[3]]
+
         Nz_list = [Nz]
         ps_list = [ps]
         Ny_r_list = [Ny_r]
@@ -103,6 +109,10 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
 
                     xd_list.append(xd)
                     u_list.append(u)
+                    throttle_list.append(u[0])
+                    ele_list.append(u[1])
+                    ali_list.append(u[2])
+                    rud_list.append(u[3])
 
                     Nz_list.append(Nz)
                     ps_list.append(ps)
@@ -132,6 +142,10 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
         res['Nz_list'] = Nz_list
         res['Ny_r_list'] = Ny_r_list
         res['u_list'] = u_list
+        res['throttle_list'] = throttle_list
+        res['ele_list'] = ele_list
+        res['ali_list'] = ali_list
+        res['rud_list'] = rud_list
 
     res['runtime'] = time.perf_counter() - start
 
