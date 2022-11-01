@@ -86,8 +86,8 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
         alpha = states[-1][1]
         alt_for_aileron = states[-1][11]
         rho_alt = rho0*(((1 - 0.703e-5*alt_for_aileron))**4.14)
-
-        moment = (alpha*cof_alpha + ali_list[-1]*21.5*cof_daileron)*S*cbar*0.5*(v**2)*rho_alt
+        qbar = 0.5*47.88026247*(v**2)*rho_alt
+        moment = (alpha*cof_alpha + ali_list[-1]*21.5*cof_daileron)*S*cbar*qbar
 
         moment_aileron = [moment]
         power_aileron = [0]
@@ -143,8 +143,9 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
                     alpha = states[-1][1]
                     alt_for_aileron = states[-1][11]
                     rho_alt = rho0*(((1 - 0.703e-5*alt_for_aileron))**4.14)
+                    qbar = 0.5*47.88026247*(v**2)*rho_alt
 
-                    moment = (alpha*cof_alpha + ali_list[-1]*21.5*cof_daileron)*S*cbar*0.5*(v**2)*rho_alt
+                    moment = (alpha*cof_alpha + ali_list[-1]*21.5*cof_daileron)*S*cbar*qbar
 
                     d_aileron = np.pi/180*21.5*(ali_list[-1] - aileron_prev)/step
 

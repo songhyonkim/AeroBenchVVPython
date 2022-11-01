@@ -87,30 +87,56 @@ def main():
 
     res = simulate()
 
-    print(res['moment_aileron'])
-    
     plot.plot_attitude(res, figsize=(12, 10))
     plt.savefig('gcas_attitude.png')
     plt.close()
     
     # 输出控制指令数据到csv
-    cmd_list = [res['throttle_list'], res['ele_list'], res['ali_list'], res['rud_list']]
+    cmd_list = [res['throttle_list'], res['ele_list'], res['ali_list'], res['rud_list'], res['moment_aileron'], res['power_aileron']]
     cmd_array = np.array(cmd_list).T
-    column = ['throttle', 'elevator', 'aileron', 'rudder']
+    column = ['throttle', 'elevator', 'aileron', 'rudder', 'moment_aileron', 'power_aileron']
     cmd_data = pd.DataFrame(columns=column, data=cmd_array)
-    cmd_data.to_csv('dive_cmd_data.csv')
+    cmd_data.to_csv('dive_data.csv')
     anim3d.make_anim(res, filename, elev=15, azim=-150)
 
     # 画出副翼铰链力矩
-    plot.plot_cmd(res, 'moment_aileron', title='Aileron Moment')
+    plot.plot_cmd(res, 'moment_aileron', 'moment/Nm', title='Aileron Moment')
     alt_filename = 'Aileron_Moment_dive.png'
     plt.savefig(alt_filename)
     print(f"Made {alt_filename}")
     plt.close()
 
     # 画出副翼舵机功率
-    plot.plot_cmd(res, 'power_aileron', title='Aileron Power')
+    plot.plot_cmd(res, 'power_aileron', 'power/W', title='Aileron Power')
     alt_filename = 'Aileron_Power_dive.png'
+    plt.savefig(alt_filename)
+    print(f"Made {alt_filename}")
+    plt.close()
+
+    # 输出throttle控制指令
+    plot.plot_cmd(res, 'throttle_list', 'throttle', title='Throttle')
+    alt_filename = 'dive_throttle.png'
+    plt.savefig(alt_filename)
+    print(f"Made {alt_filename}")
+    plt.close()
+
+     # 输出elevator控制指令
+    plot.plot_cmd(res, 'ele_list', 'elevator', title='Elevator')
+    alt_filename = 'dive_elevator.png'
+    plt.savefig(alt_filename)
+    print(f"Made {alt_filename}")
+    plt.close()
+
+     # 输出aileron控制指令
+    plot.plot_cmd(res, 'ali_list', 'aileron', title='Aileron')
+    alt_filename = 'dive_aileron.png'
+    plt.savefig(alt_filename)
+    print(f"Made {alt_filename}")
+    plt.close()
+
+     # 输出rudder控制指令
+    plot.plot_cmd(res, 'rud_list', 'rudder', title='Rudder')
+    alt_filename = 'dive_rudder.png'
     plt.savefig(alt_filename)
     print(f"Made {alt_filename}")
     plt.close()

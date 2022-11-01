@@ -125,28 +125,28 @@ def main():
     plt.close()
 
     # 输出throttle控制指令
-    plot.plot_cmd(res, 'throttle_list', title='Throttle')
+    plot.plot_cmd(res, 'throttle_list', 'throttle', title='Throttle')
     alt_filename = 'waypoint_throttle.png'
     plt.savefig(alt_filename)
     print(f"Made {alt_filename}")
     plt.close()
 
      # 输出elevator控制指令
-    plot.plot_cmd(res, 'ele_list', title='Elevator')
+    plot.plot_cmd(res, 'ele_list', 'elevator', title='Elevator')
     alt_filename = 'waypoint_elevator.png'
     plt.savefig(alt_filename)
     print(f"Made {alt_filename}")
     plt.close()
 
      # 输出aileron控制指令
-    plot.plot_cmd(res, 'ali_list', title='Aileron')
+    plot.plot_cmd(res, 'ali_list', 'aileron', title='Aileron')
     alt_filename = 'waypoint_aileron.png'
     plt.savefig(alt_filename)
     print(f"Made {alt_filename}")
     plt.close()
 
      # 输出rudder控制指令
-    plot.plot_cmd(res, 'rud_list', title='Rudder')
+    plot.plot_cmd(res, 'rud_list', 'rudder', title='Rudder')
     alt_filename = 'waypoint_rudder.png'
     plt.savefig(alt_filename)
     print(f"Made {alt_filename}")

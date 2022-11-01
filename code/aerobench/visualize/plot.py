@@ -235,7 +235,7 @@ def plot_single(run_sim_result, state_name, title=None):
     plt.tight_layout()
 
 # plot cmd signal
-def plot_cmd(run_sim_result, state_name, title=None):
+def plot_cmd(run_sim_result, state_name, y_label, title=None):
     'plot a single cmd signal over time'
 
     init_plot()
@@ -251,8 +251,8 @@ def plot_cmd(run_sim_result, state_name, title=None):
 
     ax.plot(times, ys, '-')
 
-    ax.set_ylabel(state_name)
-    ax.set_xlabel('Time')
+    ax.set_ylabel(y_label)
+    ax.set_xlabel('Time/sec')
 
     if title is not None:
         ax.set_title(title)
