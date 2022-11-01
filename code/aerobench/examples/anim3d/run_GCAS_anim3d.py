@@ -87,6 +87,8 @@ def main():
 
     res = simulate()
 
+    print(res['moment_aileron'])
+    
     plot.plot_attitude(res, figsize=(12, 10))
     plt.savefig('gcas_attitude.png')
     plt.close()
