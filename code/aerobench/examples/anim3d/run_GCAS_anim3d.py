@@ -9,6 +9,8 @@ pass a command line argument (ending with .mp4) to save a video instead of plott
 import math
 import sys
 
+import numpy as np
+import pandas as pd
 from numpy import deg2rad
 
 import matplotlib.pyplot as plt
@@ -89,6 +91,12 @@ def main():
     plt.savefig('gcas_attitude.png')
     plt.close()
     
+    # 输出控制指令数据到csv
+    cmd_list = [res['throttle_list'], res['ele_list'], res['ali_list'], res['rud_list']]
+    cmd_array = np.array(cmd_list).T
+    column = ['throttle', 'elevator', 'aileron', 'rudder']
+    cmd_data = pd.DataFrame(columns=column, data=cmd_array)
+    cmd_data.to_csv('dive_cmd_data.csv')
     anim3d.make_anim(res, filename, elev=15, azim=-150)
 
 if __name__ == '__main__':
