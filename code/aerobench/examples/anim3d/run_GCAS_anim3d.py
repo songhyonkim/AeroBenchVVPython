@@ -87,8 +87,6 @@ def main():
 
     res = simulate()
 
-    print(res)
-
     plot.plot_attitude(res, figsize=(12, 10))
     plt.savefig('gcas_attitude.png')
     plt.close()

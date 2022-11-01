@@ -152,7 +152,6 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
                     
                     moment_aileron.append(moment)
 
-
                     power_aileron.append(power )
 
                 if ap.is_finished(times[-1], states[-1]):
