@@ -87,6 +87,8 @@ def main():
 
     res = simulate()
 
+    print(res)
+
     plot.plot_attitude(res, figsize=(12, 10))
     plt.savefig('gcas_attitude.png')
     plt.close()
@@ -98,6 +100,20 @@ def main():
     cmd_data = pd.DataFrame(columns=column, data=cmd_array)
     cmd_data.to_csv('dive_cmd_data.csv')
     anim3d.make_anim(res, filename, elev=15, azim=-150)
+
+    # 画出副翼铰链力矩
+    plot.plot_cmd(res, 'moment_aileron', title='Aileron Moment')
+    alt_filename = 'Aileron_Moment_dive.png'
+    plt.savefig(alt_filename)
+    print(f"Made {alt_filename}")
+    plt.close()
+
+    # 画出副翼舵机功率
+    plot.plot_cmd(res, 'power_aileron', title='Aileron Power')
+    alt_filename = 'Aileron_Power_dive.png'
+    plt.savefig(alt_filename)
+    print(f"Made {alt_filename}")
+    plt.close()
 
 if __name__ == '__main__':
     main()

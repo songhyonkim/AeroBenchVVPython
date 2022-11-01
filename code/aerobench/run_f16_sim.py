@@ -11,6 +11,7 @@ from scipy.integrate import RK45
 from aerobench.highlevel.controlled_f16 import controlled_f16
 from aerobench.util import get_state_names, Euler
 
+
 def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model_str='morelli',
                 integrator_str='rk45', v2_integrators=False):
     '''Simulates and analyzes autonomous F-16 maneuvers
@@ -59,6 +60,12 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
 
     modes = [ap.mode]
 
+    cof_alpha = -0.006225
+    cof_daileron = -0.06667
+    S = 0.3193
+    cbar = 0.31
+    rho0 = 2.377e-3
+
     if extended_states:
         xd, u, Nz, ps, Ny_r = get_extended_states(ap, times[-1], states[-1], model_str, v2_integrators)
 
@@ -73,6 +80,17 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
         Nz_list = [Nz]
         ps_list = [ps]
         Ny_r_list = [Ny_r]
+
+        # 计算副翼舵机功率
+        v = states[-1][0]
+        alpha = states[-1][1]
+        alt_for_aileron = states[-1][11]
+        rho_alt = rho0*(((1 - 0.703e-5*alt_for_aileron))**4.14)
+
+        moment = (alpha*cof_alpha + ali_list[-1]*21.5*cof_daileron)*S*cbar*0.5*(v**2)*rho_alt
+
+        moment_aileron = [moment]
+        power_aileron = [0]
 
     der_func = make_der_func(ap, model_str, v2_integrators)
 
@@ -97,6 +115,8 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
                 t = times[-1] + step
                 #print(f"{round(t, 2)} / {tmax}")
 
+                aileron_prev = ali_list[-1]
+
                 times.append(t)
                 states.append(dense_output(t))
 
@@ -117,6 +137,23 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
                     Nz_list.append(Nz)
                     ps_list.append(ps)
                     Ny_r_list.append(Ny_r)
+
+                    # 计算副翼舵机功率
+                    v = states[-1][0]
+                    alpha = states[-1][1]
+                    alt_for_aileron = states[-1][11]
+                    rho_alt = rho0*(((1 - 0.703e-5*alt_for_aileron))**4.14)
+
+                    moment = (alpha*cof_alpha + ali_list[-1]*21.5*cof_daileron)*S*cbar*0.5*(v**2)*rho_alt
+
+                    d_aileron = np.pi/180*21.5*(ali_list[-1] - aileron_prev)/step
+
+                    power = moment*d_aileron
+                    
+                    moment_aileron.append(moment)
+
+
+                    power_aileron.append(power )
 
                 if ap.is_finished(times[-1], states[-1]):
                     # this both causes the outer loop to exit and sets res['status'] appropriately
@@ -146,6 +183,9 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
         res['ele_list'] = ele_list
         res['ali_list'] = ali_list
         res['rud_list'] = rud_list
+
+        res['moment_aileron'] = moment_aileron
+        res['power_aileron'] = power_aileron
 
     res['runtime'] = time.perf_counter() - start
 

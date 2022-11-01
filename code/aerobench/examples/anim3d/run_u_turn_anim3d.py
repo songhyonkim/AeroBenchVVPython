@@ -152,6 +152,7 @@ def main():
     print(f"Made {alt_filename}")
     plt.close()
 
+
     # 输出控制指令数据到csv
     cmd_list = [res['throttle_list'], res['ele_list'], res['ali_list'], res['rud_list']]
     cmd_array = np.array(cmd_list).T
