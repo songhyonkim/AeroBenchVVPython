@@ -92,9 +92,9 @@ def main():
     plt.close()
     
     # 输出控制指令数据到csv
-    cmd_list = [res['throttle_list'], res['ele_list'], res['ali_list'], res['rud_list'], res['moment_aileron'], res['power_aileron']]
+    cmd_list = [res['time'], res['throttle_list'], res['ele_list'], res['ali_list'], res['rud_list'], res['moment_aileron'], res['power_aileron']]
     cmd_array = np.array(cmd_list).T
-    column = ['throttle', 'elevator', 'aileron', 'rudder', 'moment_aileron', 'power_aileron']
+    column = ['time', 'throttle', 'elevator', 'aileron', 'rudder', 'moment_aileron', 'power_aileron']
     cmd_data = pd.DataFrame(columns=column, data=cmd_array)
     cmd_data.to_csv('dive_data.csv')
     anim3d.make_anim(res, filename, elev=15, azim=-150)
