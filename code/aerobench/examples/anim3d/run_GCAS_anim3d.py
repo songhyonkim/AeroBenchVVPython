@@ -92,9 +92,12 @@ def main():
     plt.close()
     
     # 输出控制指令数据到csv
-    cmd_list = [res['time'], res['throttle_list'], res['ele_list'], res['ali_list'], res['rud_list'], res['moment_aileron'], res['power_aileron']]
+    cmd_list = [res['times'], res['throttle_list'], res['ele_list'], res['ali_list'], res['rud_list'],
+     res['moment_aileron'], res['power_aileron'], res['moment_elevator'], res['power_elevator'], res['moment_rudder'], res['power_rudder']]
     cmd_array = np.array(cmd_list).T
-    column = ['time', 'throttle', 'elevator', 'aileron', 'rudder', 'moment_aileron', 'power_aileron']
+    column = ['time', 'throttle', 'elevator', 'aileron', 'rudder', 
+    'moment_aileron', 'power_aileron', 'moment_elevator', 'power_elevator', 'moment_rudder', 'power_rudder']
+    
     cmd_data = pd.DataFrame(columns=column, data=cmd_array)
     cmd_data.to_csv('dive_data.csv')
     anim3d.make_anim(res, filename, elev=15, azim=-150)
@@ -109,6 +112,34 @@ def main():
     # 画出副翼舵机功率
     plot.plot_cmd(res, 'power_aileron', 'power/W', title='Aileron Power')
     alt_filename = 'Aileron_Power_dive.png'
+    plt.savefig(alt_filename)
+    print(f"Made {alt_filename}")
+    plt.close()
+
+     # 画出升降舵铰链力矩
+    plot.plot_cmd(res, 'moment_elevator', 'moment/Nm', title='Elevator Moment')
+    alt_filename = 'Elevator_Moment_dive.png'
+    plt.savefig(alt_filename)
+    print(f"Made {alt_filename}")
+    plt.close()
+
+    # 画出升降舵舵机功率
+    plot.plot_cmd(res, 'power_elevator', 'power/W', title='Elevator Power')
+    alt_filename = 'Elevator_Power_dive.png'
+    plt.savefig(alt_filename)
+    print(f"Made {alt_filename}")
+    plt.close()
+
+     # 画出方向舵铰链力矩
+    plot.plot_cmd(res, 'moment_rudder', 'moment/Nm', title='Rudder Moment')
+    alt_filename = 'Rudder_Moment_dive.png'
+    plt.savefig(alt_filename)
+    print(f"Made {alt_filename}")
+    plt.close()
+
+    # 画出方向舵舵机功率
+    plot.plot_cmd(res, 'power_rudder', 'power/W', title='Rudder Power')
+    alt_filename = 'Rudder_Power_dive.png'
     plt.savefig(alt_filename)
     print(f"Made {alt_filename}")
     plt.close()

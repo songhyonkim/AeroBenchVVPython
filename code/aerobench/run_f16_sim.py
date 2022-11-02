@@ -61,10 +61,18 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
     modes = [ap.mode]
 
     cof_alpha = -0.006225
-    cof_daileron = -0.06667
-    S = 0.3193
-    cbar = 0.31
+    cof = -0.06667
     rho0 = 2.377e-3
+
+    S_aileron = 0.3193
+    cbar_aileron = 0.31
+
+    S_elevator = 1.08
+    cbar_elevator = 0.6
+
+    S_rudder = 0.9405
+    cbar_rudder = 0.73
+    
 
     if extended_states:
         xd, u, Nz, ps, Ny_r = get_extended_states(ap, times[-1], states[-1], model_str, v2_integrators)
@@ -81,16 +89,29 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
         ps_list = [ps]
         Ny_r_list = [Ny_r]
 
-        # 计算副翼舵机功率
+        # 计算舵机功率
         v = states[-1][0]
         alpha = states[-1][1]
-        alt_for_aileron = states[-1][11]
-        rho_alt = rho0*(((1 - 0.703e-5*alt_for_aileron))**4.14)
+        alt = states[-1][11]
+        rho_alt = rho0*(((1 - 0.703e-5*alt))**4.14)
         qbar = 0.5*47.88026247*(v**2)*rho_alt
-        moment = (alpha*cof_alpha + ali_list[-1]*21.5*cof_daileron)*S*cbar*qbar
 
-        moment_aileron = [moment]
+        # 副翼
+        moment_ail = (alpha*cof_alpha + ali_list[-1]*21.5*cof)*S_aileron*cbar_aileron*qbar
+
+        # 升降舵
+        moment_ele = (alpha*cof_alpha + ele_list[-1]*25*cof)*S_elevator*cbar_elevator*qbar
+
+        # 方向舵
+        moment_rud = (alpha*cof_alpha + rud_list[-1]*30*cof)*S_rudder*cbar_rudder*qbar
+
+        moment_aileron = [moment_ail]
+        moment_elevator = [moment_ele]
+        moment_rudder = [moment_rud]
+
         power_aileron = [0]
+        power_elevator = [0]
+        power_rudder = [0]
 
     der_func = make_der_func(ap, model_str, v2_integrators)
 
@@ -116,6 +137,8 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
                 #print(f"{round(t, 2)} / {tmax}")
 
                 aileron_prev = ali_list[-1]
+                elevator_prev = ele_list[-1]
+                rudder_prev = rud_list[-1]
 
                 times.append(t)
                 states.append(dense_output(t))
@@ -138,22 +161,37 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
                     ps_list.append(ps)
                     Ny_r_list.append(Ny_r)
 
-                    # 计算副翼舵机功率
+                    # 计算舵机功率
                     v = states[-1][0]
                     alpha = states[-1][1]
-                    alt_for_aileron = states[-1][11]
-                    rho_alt = rho0*(((1 - 0.703e-5*alt_for_aileron))**4.14)
+                    alt = states[-1][11]
+                    rho_alt = rho0*(((1 - 0.703e-5*alt))**4.14)
                     qbar = 0.5*47.88026247*(v**2)*rho_alt
 
-                    moment = (alpha*cof_alpha + ali_list[-1]*21.5*cof_daileron)*S*cbar*qbar
-
+                    # 副翼
+                    moment_ail = (alpha*cof_alpha + ali_list[-1]*21.5*cof)*S_aileron*cbar_aileron*qbar
                     d_aileron = np.pi/180*21.5*(ali_list[-1] - aileron_prev)/step
+                    power_ail = moment_ail*d_aileron 
 
-                    power = moment*d_aileron
-                    
-                    moment_aileron.append(moment)
+                    moment_aileron.append(moment_ail)
+                    power_aileron.append(power_ail)
 
-                    power_aileron.append(power )
+                    # 升降舵
+                    moment_ele = (alpha*cof_alpha + ele_list[-1]*25*cof)*S_elevator*cbar_elevator*qbar
+                    d_elevator = np.pi/180*21.5*(ele_list[-1] - elevator_prev)/step
+                    power_ele = moment_ele*d_elevator
+
+                    moment_elevator.append(moment_ele)
+                    power_elevator.append(power_ele)
+
+                    # 方向舵
+                    moment_rud = (alpha*cof_alpha + rud_list[-1]*30*cof)*S_rudder*cbar_rudder*qbar
+                    d_rudder = np.pi/180*21.5*(rud_list[-1] - rudder_prev)/step
+                    power_rud = moment_rud*d_rudder
+
+                    moment_rudder.append(moment_rud)
+                    power_rudder.append(power_rud)
+
 
                 if ap.is_finished(times[-1], states[-1]):
                     # this both causes the outer loop to exit and sets res['status'] appropriately
@@ -186,6 +224,10 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
 
         res['moment_aileron'] = moment_aileron
         res['power_aileron'] = power_aileron
+        res['moment_elevator'] = moment_elevator
+        res['power_elevator'] = power_elevator
+        res['moment_rudder'] = moment_rudder
+        res['power_rudder'] = power_rudder
 
     res['runtime'] = time.perf_counter() - start
 
