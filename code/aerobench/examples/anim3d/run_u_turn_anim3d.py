@@ -28,8 +28,8 @@ def simulate(filename):
     beta = 0                # Side slip angle (rad)
 
     # Initial Attitude
-    alt = 1500        # altitude (ft)
-    vt = 540          # initial velocity (ft/sec)
+    alt = 9842        # altitude (ft)
+    vt = 1500          # initial velocity (ft/sec)
     phi = 0           # Roll angle from wings level (rad)
     theta = 0         # Pitch angle from nose level (rad)
     psi = 0           # Yaw angle from North (rad)
@@ -40,9 +40,11 @@ def simulate(filename):
     tmax = 150 # simulation time
 
     # make waypoint list
-    waypoints = [[-5000, -7500, alt],
-                 [-15000, -7500, alt-500],
-                 [-15000, 5000, alt-200]]
+    # waypoints = [[-5000, -7500, alt],
+    #              [-15000, -7500, alt-500],
+    #              [-15000, 5000, alt-200]]
+
+    waypoints = [[9701.425001453317, 2425.356250363333, 9842.0]]
 
     ap = WaypointAutopilot(waypoints, stdout=True)
 
@@ -118,57 +120,64 @@ def main():
 
     res, init_extra, update_extra, skip_override, waypoints = simulate(filename)
 
-    plot.plot_single(res, 'alt', title='Altitude (ft)')
-    alt_filename = 'waypoint_altitude.png'
-    plt.savefig(alt_filename)
-    print(f"Made {alt_filename}")
-    plt.close()
+    states = res['states'][-1]
+    print([states[10], states[9], states[11]])
 
-    # 输出throttle控制指令
-    plot.plot_cmd(res, 'throttle_list', 'throttle', title='Throttle')
-    alt_filename = 'waypoint_throttle.png'
-    plt.savefig(alt_filename)
-    print(f"Made {alt_filename}")
-    plt.close()
+    # plot.plot_single(res, 'alt', title='Altitude (ft)')
+    # alt_filename = 'waypoint_altitude.png'
+    # plt.savefig(alt_filename)
+    # print(f"Made {alt_filename}")
+    # plt.close()
 
-     # 输出elevator控制指令
-    plot.plot_cmd(res, 'ele_list', 'elevator', title='Elevator')
-    alt_filename = 'waypoint_elevator.png'
-    plt.savefig(alt_filename)
-    print(f"Made {alt_filename}")
-    plt.close()
+    # # 输出throttle控制指令
+    # plot.plot_cmd(res, 'throttle_list', 'throttle', title='Throttle')
+    # alt_filename = 'waypoint_throttle.png'
+    # plt.savefig(alt_filename)
+    # print(f"Made {alt_filename}")
+    # plt.close()
 
-     # 输出aileron控制指令
-    plot.plot_cmd(res, 'ali_list', 'aileron', title='Aileron')
-    alt_filename = 'waypoint_aileron.png'
-    plt.savefig(alt_filename)
-    print(f"Made {alt_filename}")
-    plt.close()
+    #  # 输出elevator控制指令
+    # plot.plot_cmd(res, 'ele_list', 'elevator', title='Elevator')
+    # alt_filename = 'waypoint_elevator.png'
+    # plt.savefig(alt_filename)
+    # print(f"Made {alt_filename}")
+    # plt.close()
 
-     # 输出rudder控制指令
-    plot.plot_cmd(res, 'rud_list', 'rudder', title='Rudder')
-    alt_filename = 'waypoint_rudder.png'
-    plt.savefig(alt_filename)
-    print(f"Made {alt_filename}")
-    plt.close()
+    #  # 输出aileron控制指令
+    # plot.plot_cmd(res, 'ali_list', 'aileron', title='Aileron')
+    # alt_filename = 'waypoint_aileron.png'
+    # plt.savefig(alt_filename)
+    # print(f"Made {alt_filename}")
+    # plt.close()
+
+    #  # 输出rudder控制指令
+    # plot.plot_cmd(res, 'rud_list', 'rudder', title='Rudder')
+    # alt_filename = 'waypoint_rudder.png'
+    # plt.savefig(alt_filename)
+    # print(f"Made {alt_filename}")
+    # plt.close()
 
 
-    # 输出控制指令数据到csv
-    cmd_list = [res['throttle_list'], res['ele_list'], res['ali_list'], res['rud_list']]
-    cmd_array = np.array(cmd_list).T
-    column = ['throttle', 'elevator', 'aileron', 'rudder']
-    cmd_data = pd.DataFrame(columns=column, data=cmd_array)
-    cmd_data.to_csv('cmd_data.csv')
+    # # 输出控制指令数据到csv
+    # cmd_list = [res['throttle_list'], res['ele_list'], res['ali_list'], res['rud_list']]
+    # cmd_array = np.array(cmd_list).T
+    # column = ['throttle', 'elevator', 'aileron', 'rudder']
+    # cmd_data = pd.DataFrame(columns=column, data=cmd_array)
+    # cmd_data.to_csv('cmd_data.csv')
 
-    plot.plot_overhead(res, waypoints=waypoints)
-    overhead_filename = 'waypoint_overhead.png'
-    plt.savefig(overhead_filename)
-    print(f"Made {overhead_filename}")
-    plt.close()
+    # plot.plot_overhead(res, waypoints=waypoints)
+    # overhead_filename = 'waypoint_overhead.png'
+    # plt.savefig(overhead_filename)
+    # print(f"Made {overhead_filename}")
+    # plt.close()
         
-    anim3d.make_anim(res, filename, f16_scale=70, viewsize=5000, viewsize_z=4000, trail_pts=np.inf,
-                     elev=27, azim=-107, skip_frames=skip_override,
-                     chase=True, fixed_floor=True, init_extra=init_extra, update_extra=update_extra)
+    # anim3d.make_anim(res, filename, f16_scale=70, viewsize=5000, viewsize_z=4000, trail_pts=np.inf,
+    #                  elev=27, azim=-107, skip_frames=skip_override,
+    #                  chase=True, fixed_floor=True, init_extra=init_extra, update_extra=update_extra)
+
+    anim3d.make_anim(res, filename, f16_scale=140, viewsize=10000, viewsize_z=8000, trail_pts=np.inf,
+    elev=54, azim=-200, skip_frames=skip_override,
+    chase=True, fixed_floor=True, init_extra=init_extra, update_extra=update_extra)
 
 if __name__ == '__main__':
     main()

@@ -216,6 +216,7 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
         res['ps_list'] = ps_list
         res['Nz_list'] = Nz_list
         res['Ny_r_list'] = Ny_r_list
+        
         res['u_list'] = u_list
         res['throttle_list'] = throttle_list
         res['ele_list'] = ele_list

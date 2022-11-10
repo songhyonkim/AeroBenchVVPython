@@ -50,32 +50,37 @@ def main():
     
     print(f"Simulation Completed in {round(res['runtime'], 2)} seconds (extended_states={extended_states})")
 
-    plot.plot_single(res, 'alt', title='Altitude (ft)')
-    filename = 'alt.png'
+    print(res['states'][-1])
+    print(res['states'][:, 11])
+    print(res['states'][:, 10])
+    print(res['states'][:, 9])
+
+    plot.plot_single(res, 'pos_e', title='East (ft)')
+    filename = 'east.png'
     plt.savefig(filename)
     print(f"Made {filename}")
 
-    plot.plot_overhead(res, waypoints=waypoints)
-    filename = 'overhead.png'
-    plt.savefig(filename)
-    print(f"Made {filename}")
+    # plot.plot_overhead(res, waypoints=waypoints)
+    # filename = 'overhead.png'
+    # plt.savefig(filename)
+    # print(f"Made {filename}")
 
-    plot.plot_attitude(res)
-    filename = 'attitude.png'
-    plt.savefig(filename)
-    print(f"Made {filename}")
+    # plot.plot_attitude(res)
+    # filename = 'attitude.png'
+    # plt.savefig(filename)
+    # print(f"Made {filename}")
 
-    # plot inner loop controls + references
-    plot.plot_inner_loop(res)
-    filename = 'inner_loop.png'
-    plt.savefig(filename)
-    print(f"Made {filename}")
+    # # plot inner loop controls + references
+    # plot.plot_inner_loop(res)
+    # filename = 'inner_loop.png'
+    # plt.savefig(filename)
+    # print(f"Made {filename}")
 
-    # plot outer loop controls + references
-    plot.plot_outer_loop(res)
-    filename = 'outer_loop.png'
-    plt.savefig(filename)
-    print(f"Made {filename}")
+    # # plot outer loop controls + references
+    # plot.plot_outer_loop(res)
+    # filename = 'outer_loop.png'
+    # plt.savefig(filename)
+    # print(f"Made {filename}")
 
 if __name__ == '__main__':
     main()
