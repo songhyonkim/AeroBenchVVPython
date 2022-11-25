@@ -195,23 +195,25 @@ def main():
     # 初始条件设置
     wpt_start = [0, 0, 1000]
     wpt_target = [-200000, -50000, 12000]
-    target_list = [wpt_target]
+    target_list = [wpt_target, wpt_target]
+    myself_list = [wpt_start]
 
-    wptPath_minLen = 15000
-    psi_max = np.deg2rad(360)
+    wptPath_minLen = 25000
+    psi_max = np.deg2rad(180)
     theta_max = np.deg2rad(180)
     M = 30
     N = 30
+    K = 3
 
-    omega = [0.25, 0.5, 0.25]
+    omega = [0.4, 0.4, 0.2]
     threat_pt = [-200000, -50000, 12000]
-    threat_radius = 1500
-    threat_coef = [1.1, 1.2]
-    D = 1.2
+    threat_radius = 5000
+    threat_coef = [5, 1.2]
+    D = 1.1
 
     init = [1500, deg2rad(2.15), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9]
 
-    error = u(wpt_start, wpt_target, 1)
+    error = 0
     error_list = [error]
     iteration = 0
 
@@ -239,45 +241,55 @@ def main():
     while(iteration <= 100):
 
         # 当前航迹点下的后继航迹点集
-        nextPossible_wpts = sas(wpt_start, wpt_target, wptPath_minLen, psi_max, theta_max, M, N)
+        nextPossible_wpts = sas(wpt_start, target_list, wptPath_minLen, psi_max, theta_max, M, N, K)
 
         # 获得后继航迹点集中航迹代价最小的航迹点
-        best_Wpt, best_Wpt_index, u_list =  best_nextWpt(wpt_start, target_list, nextPossible_wpts, omega, threat_pt, threat_radius, threat_coef, D)
+        best_Wpt, best_Wpt_index, cost_next =  best_nextWpt(wpt_start, wptPath_minLen, target_list, nextPossible_wpts, omega, threat_pt, threat_radius, threat_coef, D)
+        # if(abs(best_Wpt[0]) <= abs(myself_list[-1][0])):
+        #     best_Wpt[0] = myself_list[-1][0] - 2000
         
-        # print("下一航迹点：")
-        # print(best_Wpt)
+        print("最佳的下一航迹点：")
+        print(best_Wpt)
 
-        res, init_extra, update_extra, skip_override, waypoints = simulate_pathPlanner(init, [best_Wpt], filename)
+
+        # res, init_extra, update_extra, skip_override, waypoints = simulate_pathPlanner(init, [best_Wpt], filename)
 
         # 更新航迹点，目标和导弹的坐标
-        init = res['states'][-1]
-        wpt_start = [init[10], init[9], init[11]]
+        # init = res['states'][-1]
+        # wpt_start = [init[10], init[9], init[11]]
+        wpt_start = best_Wpt
+        myself_list.append(wpt_start)
+        print("到达的下一航迹点：")
+        print(wpt_start)
 
-        wpt_target = EnemyFly(wpt_target[0], wpt_target[1], wpt_target[2])
+        # wpt_start = best_Wpt
+        wpt_target = EnemyFly(wpt_target[0], wpt_target[1], wpt_target[2], [-10000, -5000, 5000])
         target_list.append(wpt_target)
 
-        threat_pt = Missile(threat_pt[0], threat_pt[1], threat_pt[2])
+        threat_pt = Missile(threat_pt[0], threat_pt[1], threat_pt[2], 0, 0, 1000)
         x, y, z = ball(threat_pt, threat_radius)
         ax.plot_surface(x, y, z, rstride=1, cstride=1, color='black')
         ax.scatter(wpt_start[0], wpt_start[1], wpt_start[2], c='b')
+        ax.scatter(best_Wpt[0], best_Wpt[1], best_Wpt[2], c='r')
         ax.scatter(wpt_target[0], wpt_target[1], wpt_target[2], c='g')
 
         # 记录每一段航迹的动画参数
-        res_list.append(res)
-        scale_list.append(140)
-        viewsize_list.append(12000)
-        viewsize_z_list.append(10000)
-        trail_pts_list.append(np.inf)
-        elev_list.append(70)
-        azim_list.append(-200)
-        skip_list.append(skip_override)
-        chase_list.append(True)
-        fixed_floor_list.append(True)
-        init_extra_list.append(init_extra)
-        update_extra_list.append(update_extra)
+        # res_list.append(res)
+        # scale_list.append(140)
+        # viewsize_list.append(12000)
+        # viewsize_z_list.append(10000)
+        # trail_pts_list.append(np.inf)
+        # elev_list.append(70)
+        # azim_list.append(-200)
+        # skip_list.append(skip_override)
+        # chase_list.append(True)
+        # fixed_floor_list.append(True)
+        # init_extra_list.append(init_extra)
+        # update_extra_list.append(update_extra)
         
-        error = u(wpt_start, wpt_target, 1)
+        error = u(best_Wpt, wpt_start , 1)
         error_list.append(error)
+        print('到达误差：')
         print(error)
 
         iteration = iteration + 1
@@ -286,9 +298,9 @@ def main():
     print(wpt_start)
     
     # 添加坐标轴(顺序是X,Y,Z)
-    ax.set_xlim(-210000, 0)
-    ax.set_ylim(-210000, 0)
-    ax.set_zlim(-30000, 210000)
+    ax.set_xlim(-210000, 1000)
+    ax.set_ylim(-210000, 1000)
+    ax.set_zlim(0, 210000)
     ax.set_xlabel('X', fontdict={'size': 20, 'color': 'red'})
     ax.set_ylabel('Y', fontdict={'size': 15, 'color': 'red'})
     ax.set_zlabel('Z', fontdict={'size': 15, 'color': 'red'})
