@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from aerobench.run_f16_sim import run_f16_sim
 from aerobench.visualize import anim3d, plot
 from aerobench.examples.waypoint.waypoint_autopilot import WaypointAutopilot
-from aerobench.AI_F16.waypointPlanner import sas, u, best_nextWpt
+from aerobench.AI_F16.waypointPlanner import sas, u, best_nextWpt, ball, EnemyFly, Missile
 
 
 def simulate(filename):
@@ -195,16 +195,17 @@ def main():
     # 初始条件设置
     wpt_start = [0, 0, 1000]
     wpt_target = [-200000, -50000, 12000]
+    target_list = [wpt_target]
 
-    wptPath_minLen = 20000
+    wptPath_minLen = 15000
     psi_max = np.deg2rad(360)
     theta_max = np.deg2rad(180)
-    M = 50
-    N = 50
+    M = 30
+    N = 30
 
-    omega = [0.5, 0, 0.5]
-    threat_pt = [-70000, -25000, 8000]
-    threat_radius = 10000
+    omega = [0.25, 0.5, 0.25]
+    threat_pt = [-200000, -50000, 12000]
+    threat_radius = 1500
     threat_coef = [1.1, 1.2]
     D = 1.2
 
@@ -229,8 +230,10 @@ def main():
     # 绘制散点图
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(wpt_start[0], wpt_start[1], wpt_start[2], c='r')
-    ax.scatter(wpt_target[0], wpt_target[1], wpt_target[2], c='r')
+    ax.scatter(wpt_start[0], wpt_start[1], wpt_start[2], c='b')
+    ax.scatter(wpt_target[0], wpt_target[1], wpt_target[2], c='g')
+    x, y, z = ball(threat_pt, threat_radius)
+    ax.plot_surface(x, y, z, rstride=1, cstride=1, color='black')
 
     while(error >= 5000):
 
@@ -245,10 +248,17 @@ def main():
 
         res, init_extra, update_extra, skip_override, waypoints = simulate_pathPlanner(init, [best_Wpt], filename)
 
-        # 更新航迹点
+        # 更新航迹点，目标和导弹的坐标
         init = res['states'][-1]
         wpt_start = [init[10], init[9], init[11]]
+
+        wpt_target = EnemyFly(wpt_target[0], wpt_target[1], wpt_target[2])
+        target_list.append(wpt_target)
+
+        threat_pt = Missile(threat_pt[0], threat_pt[1], threat_pt[2])
+
         ax.scatter(wpt_start[0], wpt_start[1], wpt_start[2], c='b')
+        ax.scatter(wpt_target[0], wpt_target[1], wpt_target[2], c='g')
 
         # 记录每一段航迹的动画参数
         res_list.append(res)
@@ -272,7 +282,10 @@ def main():
     print(wpt_start)
     
     # 添加坐标轴(顺序是X,Y,Z)
-    ax.set_xlabel('X', fontdict={'size': 15, 'color': 'red'})
+    ax.set_xlim(-210000, 0)
+    ax.set_ylim(-210000, 0)
+    ax.set_zlim(-30000, 210000)
+    ax.set_xlabel('X', fontdict={'size': 20, 'color': 'red'})
     ax.set_ylabel('Y', fontdict={'size': 15, 'color': 'red'})
     ax.set_zlabel('Z', fontdict={'size': 15, 'color': 'red'})
 
@@ -280,63 +293,11 @@ def main():
 
 
     # 画三维动画
-    # anim3d.make_anim(res_list, filename, f16_scale=scale_list, viewsize=viewsize_list, viewsize_z=viewsize_z_list,
-    #                  trail_pts=trail_pts_list, elev=elev_list, azim=azim_list, skip_frames=skip_list,
-    #                  chase=chase_list, fixed_floor=fixed_floor_list,
-    #                  init_extra=init_extra_list, update_extra=update_extra_list)
+    anim3d.make_anim(res_list, filename, f16_scale=scale_list, viewsize=viewsize_list, viewsize_z=viewsize_z_list,
+                     trail_pts=trail_pts_list, elev=elev_list, azim=azim_list, skip_frames=skip_list,
+                     chase=chase_list, fixed_floor=fixed_floor_list,
+                     init_extra=init_extra_list, update_extra=update_extra_list)
 
-    # # 画出高度变化曲线
-    # plot.plot_single(res, 'alt', title='Altitude (ft)')
-    # alt_filename = 'waypoint_altitude.png'
-    # plt.savefig(alt_filename)
-    # print(f"Made {alt_filename}")
-    # plt.close()
-
-    # # 输出throttle控制指令
-    # plot.plot_cmd(res, 'throttle_list', 'throttle', title='Throttle')
-    # alt_filename = 'waypoint_throttle.png'
-    # plt.savefig(alt_filename)
-    # print(f"Made {alt_filename}")
-    # plt.close()
-
-    #  # 输出elevator控制指令
-    # plot.plot_cmd(res, 'ele_list', 'elevator', title='Elevator')
-    # alt_filename = 'waypoint_elevator.png'
-    # plt.savefig(alt_filename)
-    # print(f"Made {alt_filename}")
-    # plt.close()
-
-    #  # 输出aileron控制指令
-    # plot.plot_cmd(res, 'ali_list', 'aileron', title='Aileron')
-    # alt_filename = 'waypoint_aileron.png'
-    # plt.savefig(alt_filename)
-    # print(f"Made {alt_filename}")
-    # plt.close()
-
-    #  # 输出rudder控制指令
-    # plot.plot_cmd(res, 'rud_list', 'rudder', title='Rudder')
-    # alt_filename = 'waypoint_rudder.png'
-    # plt.savefig(alt_filename)
-    # print(f"Made {alt_filename}")
-    # plt.close()
-
-
-    # # 输出控制指令数据到csv
-    # cmd_list = [res['throttle_list'], res['ele_list'], res['ali_list'], res['rud_list']]
-    # cmd_array = np.array(cmd_list).T
-    # column = ['throttle', 'elevator', 'aileron', 'rudder']
-    # cmd_data = pd.DataFrame(columns=column, data=cmd_array)
-    # cmd_data.to_csv('cmd_data.csv')
-
-    # plot.plot_overhead(res, waypoints=waypoints)
-    # overhead_filename = 'waypoint_overhead.png'
-    # plt.savefig(overhead_filename)
-    # print(f"Made {overhead_filename}")
-    # plt.close()
-        
-    # anim3d.make_anim(res, filename, f16_scale=70, viewsize=5000, viewsize_z=4000, trail_pts=np.inf,
-    #                  elev=27, azim=-107, skip_frames=skip_override,
-    #                  chase=True, fixed_floor=True, init_extra=init_extra, update_extra=update_extra)
-
+   
 if __name__ == '__main__':
     main()
