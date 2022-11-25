@@ -38,7 +38,8 @@ def sas(wpt_now, wpt_target, wptPath_minLen, psi_max, theta_max, M, N):
 # 真实航迹代价函数
 def cost(wpt, wpt_next, enemy_points_list, omega, threat_pt, threat_radius, threat_coef):
     # wpt:当前航迹点的坐标
-    # wpt_next:目标航迹点的坐标
+    # wpt_next:下一航迹点的坐标
+    # enemy_points_list:目标航迹点
     # omega:权重系数
     # threat_pt:威胁点的坐标信息
     # threat_radius:威胁半径
@@ -107,9 +108,9 @@ def vectors_angle(vector_a, vector_b):
 
 
 # 在后继节点集中选择航迹代价最小的航迹点
-def best_nextWpt(wpt_now, wpt_target, nextPossible_wpts, omega, threat_pt, threat_radius, threat_coef, D):
+def best_nextWpt(wpt_now, enemy_points_list, nextPossible_wpts, omega, threat_pt, threat_radius, threat_coef, D):
     # wpt_now:当前航迹点的坐标
-    # wpt_target:目标航迹点的坐标
+    # enemy_points_list:目标航迹点的坐标
     # nextPossible_wpts:当前航迹点的后继节点集
     # omega:权重系数
     # threat_pt:威胁点的坐标信息
@@ -119,7 +120,7 @@ def best_nextWpt(wpt_now, wpt_target, nextPossible_wpts, omega, threat_pt, threa
 
     cost_list = [cost(wpt_now, [nextPossible_wpts[0][i], nextPossible_wpts[1][i], nextPossible_wpts[2][i]], 
                 omega, threat_pt, threat_radius, threat_coef) for i in range(len(nextPossible_wpts[0]))]
-    u_list  = [u([nextPossible_wpts[0][i], nextPossible_wpts[1][i], nextPossible_wpts[2][i]], wpt_target, D)
+    u_list  = [u([nextPossible_wpts[0][i], nextPossible_wpts[1][i], nextPossible_wpts[2][i]], enemy_points_list[-1], D)
                 for i in range(len(nextPossible_wpts[0]))]
 
     f_list = np.sum([cost_list, u_list], axis=0).tolist()

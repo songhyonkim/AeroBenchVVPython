@@ -213,6 +213,7 @@ def main():
 
     error = u(wpt_start, wpt_target, 1)
     error_list = [error]
+    iteration = 0
 
     res_list = []
     scale_list = []
@@ -235,13 +236,13 @@ def main():
     x, y, z = ball(threat_pt, threat_radius)
     ax.plot_surface(x, y, z, rstride=1, cstride=1, color='black')
 
-    while(error >= 5000):
+    while(iteration <= 100):
 
         # 当前航迹点下的后继航迹点集
         nextPossible_wpts = sas(wpt_start, wpt_target, wptPath_minLen, psi_max, theta_max, M, N)
 
         # 获得后继航迹点集中航迹代价最小的航迹点
-        best_Wpt, best_Wpt_index, u_list =  best_nextWpt(wpt_start, wpt_target, nextPossible_wpts, omega, threat_pt, threat_radius, threat_coef, D)
+        best_Wpt, best_Wpt_index, u_list =  best_nextWpt(wpt_start, target_list, nextPossible_wpts, omega, threat_pt, threat_radius, threat_coef, D)
         
         # print("下一航迹点：")
         # print(best_Wpt)
@@ -256,7 +257,8 @@ def main():
         target_list.append(wpt_target)
 
         threat_pt = Missile(threat_pt[0], threat_pt[1], threat_pt[2])
-
+        x, y, z = ball(threat_pt, threat_radius)
+        ax.plot_surface(x, y, z, rstride=1, cstride=1, color='black')
         ax.scatter(wpt_start[0], wpt_start[1], wpt_start[2], c='b')
         ax.scatter(wpt_target[0], wpt_target[1], wpt_target[2], c='g')
 
@@ -278,6 +280,8 @@ def main():
         error_list.append(error)
         print(error)
 
+        iteration = iteration + 1
+
     print("Finally reach:")
     print(wpt_start)
     
@@ -293,10 +297,10 @@ def main():
 
 
     # 画三维动画
-    anim3d.make_anim(res_list, filename, f16_scale=scale_list, viewsize=viewsize_list, viewsize_z=viewsize_z_list,
-                     trail_pts=trail_pts_list, elev=elev_list, azim=azim_list, skip_frames=skip_list,
-                     chase=chase_list, fixed_floor=fixed_floor_list,
-                     init_extra=init_extra_list, update_extra=update_extra_list)
+    # anim3d.make_anim(res_list, filename, f16_scale=scale_list, viewsize=viewsize_list, viewsize_z=viewsize_z_list,
+    #                  trail_pts=trail_pts_list, elev=elev_list, azim=azim_list, skip_frames=skip_list,
+    #                  chase=chase_list, fixed_floor=fixed_floor_list,
+    #                  init_extra=init_extra_list, update_extra=update_extra_list)
 
    
 if __name__ == '__main__':
