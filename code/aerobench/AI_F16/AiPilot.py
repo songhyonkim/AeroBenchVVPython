@@ -1,5 +1,6 @@
 import math
 import sys
+import random
 import numpy as np
 from numpy import deg2rad
 import matplotlib.pyplot as plt
@@ -9,18 +10,18 @@ from aerobench.examples.waypoint.waypoint_autopilot import WaypointAutopilot
 
 
 # 第一部分
-# 1.1 航迹节点扩展函数--SAS搜索算法
+# 1.1 节点扩展函数--SAS搜索算法
 # 算法目的：在规划空间中生成备选节点集
 def sas(wpt_myself, wptPath_minLen, psi_max, theta_max, M, N):
-    # wpt_myself:当前航迹点坐标
-    # wpt_target:目标航迹点坐标
-    # wptPath_minLen:最短航迹路径距离
+    # wpt_myself:当前点坐标
+    # wpt_target:目标点坐标
+    # wptPath_minLen:最短路径距离
     # psi_max:飞机最大侧偏角
     # theta_max:飞机最大爬升/俯冲角
     # M:俯仰区子扇形面个数
     # N:侧偏区子扇形面个数
 
-    # 计算当前航迹点对目标的指向角度和俯仰角度
+    # 计算当前点对目标的指向角度和俯仰角度
     # me2enemy_vector = get_vector(wpt_myself, wpt_target[-1])
 
     # vector_1 = [me2enemy_vector[0], me2enemy_vector[1], 0]
@@ -33,11 +34,9 @@ def sas(wpt_myself, wptPath_minLen, psi_max, theta_max, M, N):
     # print(me2enemy_angle)
     # print(me2enemy_yaw)
 
-    # 应当考虑航迹路径分段
-    # epsilon = np.pi/20
+    # 应当考虑路径分段
     psi_list = [psi_max/N*i for i in range(N+1)]
     theta_list = [-theta_max/2 + theta_max/M*i for i in range(M+1)]
-    # radius_list = [wptPath_minLen/K*(i+1) for i in range(K)]
 
     nextPossible_wpts_x = []
     nextPossible_wpts_y = []
@@ -57,70 +56,85 @@ def sas(wpt_myself, wptPath_minLen, psi_max, theta_max, M, N):
     return [nextPossible_wpts_x, nextPossible_wpts_y, nextPossible_wpts_z]
 
 
-# 1.2 航迹代价函数
-def cost(wpt_myself, wpt_next, max_len, enemy_points_list, omega, threat_pt, threat_radius, threat_coef):
-    # wpt_myself:当前航迹点的坐标
-    # wpt_next:下一航迹点的坐标
-    # enemy_points_list:目标航迹点
+# 1.2 代价函数
+def cost(wpt_myself, wpt_next, enemy_points_list, omega, threat_pt, threat_radius, D_attack):
+    # wpt_myself:当前点的坐标
+    # wpt_next:下一点的坐标
+    # enemy_points_list:目标点
     # omega:权重系数
     # threat_pt:威胁点的坐标信息
     # threat_radius:威胁半径
-    # threat_coef:威胁系数
+    # D_attack:飞机可攻击距离
 
+    # # 受敌机攻击的代价，视线角，单位：度
+    # speed_vector_myself = get_vector(wpt_myself, wpt_next)
+    # speed_vector_enemy = get_vector(enemy_points_list[-2,:], enemy_points_list[-1,:])
+    # myself_to_enemy = get_vector(wpt_next, enemy_points_list[-1,:])
+    # enemy_to_myself = get_vector(enemy_points_list[-1,:], wpt_next)
 
-    # 航段长度代价，油量代价主要与飞行航程相关
-    l = Euclid(wpt_myself, wpt_next)/max_len  # 归一化
-    
-    # 受敌机攻击的代价，视线角，单位：度
-    speed_vector_myself = get_vector(wpt_myself, wpt_next)
-    speed_vector_enemy = get_vector(enemy_points_list[-2,:], enemy_points_list[-1,:])
-    myself_to_enemy = get_vector(wpt_next, enemy_points_list[-1,:])
-    enemy_to_myself = get_vector(enemy_points_list[-1,:], wpt_next)
+    # # 本机相对于敌机的视线角
+    # alpha_myself = vectors_angle(speed_vector_enemy, enemy_to_myself)
+    # # 敌机相对于本机的视线角
+    # alpha_enemy = vectors_angle(speed_vector_myself, myself_to_enemy)
 
-    # 本机相对于敌机的视线角
-    alpha_myself = vectors_angle(speed_vector_enemy, enemy_to_myself)
-    # 敌机相对于本机的视线角
-    alpha_enemy = vectors_angle(speed_vector_myself, myself_to_enemy)
-
-    theta = (alpha_enemy - alpha_myself + np.pi)/(2*np.pi)
+    # theta = (alpha_enemy - alpha_myself + np.pi)/(2*np.pi)
 
     # 受导弹攻击的代价
-    # 下一航迹点与导弹的距离
+    # 下一点与导弹的距离
     l_threat = Euclid(wpt_next, threat_pt)
 
-    if(threat_coef[0]*threat_coef[1]*threat_radius < l_threat):
-        f_attack = 0
+    if(threat_radius < l_threat):
+        be_attack = 0
     else:
-        f_attack = threat_coef[0]*threat_coef[1]*threat_radius/l_threat
+        be_attack = threat_radius/(threat_radius + l_threat)
 
-    cost_true = omega[0]*l**2 + omega[1]*theta**2 + omega[2]*f_attack**2
+
+    # 打击距离过远的代价,油量代价和被跟踪的代价
+
+    # 油量代价主要与爬升高度有关
+    dif_h = (wpt_myself[2] - wpt_next[2])
+    d = Euclid(enemy_points_list[-1,:], wpt_next)
+
+    if(d < D_attack):
+        we_attack = 0.5
+        be_follow = np.sqrt(wpt_myself[0]**2 + wpt_myself[1]**2 + wpt_myself[2]**2)/np.sqrt(enemy_points_list[-1,:][0]**2 + enemy_points_list[-1,:][1]**2 + enemy_points_list[-1,:][2]**2)
+        if(dif_h < 0):
+            fluel_cost = dif_h
+        else:
+            fluel_cost = 1
+    else:
+        we_attack = d/D_attack
+        # 被敌机跟踪的代价
+        be_follow = 0
+        if(dif_h > 0):
+            fluel_cost = -dif_h
+        else:
+            fluel_cost = 1
+
+    cost_true = omega[0]*fluel_cost + omega[1]*be_attack**2 + omega[2]*we_attack**2 + omega[3]*be_follow**2
 
     return cost_true
 
 
 # 第二部分
-# 2.1 后继节点集中选择航迹代价最小的航迹点
-def best_nextWpt(wpt_myself, min_len, enemy_points_list, nextPossible_wpts, omega, threat_pt, threat_radius, threat_coef, D):
-    # wpt_myself:当前航迹点的坐标
-    # enemy_points_list:目标航迹点的坐标
-    # nextPossible_wpts:当前航迹点的后继节点集
+# 2.1 后继节点集中选择代价最小的点
+def best_nextWpt(wpt_myself, enemy_points_list, nextPossible_wpts, omega, threat_pt, threat_radius, D_attack):
+    # wpt_myself:当前点的坐标
+    # enemy_points_list:目标点的坐标
+    # nextPossible_wpts:当前点的后继节点集
     # omega:权重系数
     # threat_pt:威胁点的坐标信息
     # threat_radius:威胁半径
-    # threat_coef:威胁系数
+    # D_attack:飞机可攻击距离
 
-    cost_list = [cost(wpt_myself, [nextPossible_wpts[0][i], nextPossible_wpts[1][i], nextPossible_wpts[2][i]], min_len, 
-                enemy_points_list, omega, threat_pt, threat_radius, threat_coef) for i in range(len(nextPossible_wpts[0]))]
-    u_list  = [u([nextPossible_wpts[0][i], nextPossible_wpts[1][i], nextPossible_wpts[2][i]], enemy_points_list[-1,:], D)
-                for i in range(len(nextPossible_wpts[0]))]
+    cost_list = [cost(wpt_myself, [nextPossible_wpts[0][i], nextPossible_wpts[1][i], nextPossible_wpts[2][i]], 
+                enemy_points_list, omega, threat_pt, threat_radius, D_attack) for i in range(len(nextPossible_wpts[0]))]
 
-    f_list = np.sum([cost_list, u_list], axis=0).tolist()
-
-    best_Wpt_index = f_list.index(min(f_list))
+    best_Wpt_index = cost_list.index(min(cost_list))
 
     best_Wpt = [nextPossible_wpts[0][best_Wpt_index], nextPossible_wpts[1][best_Wpt_index], nextPossible_wpts[2][best_Wpt_index]]
 
-    return best_Wpt, best_Wpt_index, min(f_list)
+    return best_Wpt, best_Wpt_index, min(cost_list)
 
 
 # 第三部分
@@ -130,17 +144,6 @@ def Euclid(wpt, wpt_target):
     d = math.sqrt((wpt[0] - wpt_target[0])**2 + (wpt[1] - wpt_target[1])**2 + (wpt[2] - wpt_target[2])**2)
     
     return d
-
-# 3.2 启发函数
-def u(wpt, wpt_target, D):
-
-    # 我机与敌机距离
-    d = Euclid(wpt, wpt_target)
-
-    if(d>D):
-        return 0.15*(d/D - 1)**2
-    else:
-        return 0.15*(D/d - 1)**2
 
 # 3.3 速度矢量计算函数
 def get_vector(point_a, point_b):
@@ -214,7 +217,7 @@ def ball(center, radius):
 
 
 # 第四部分
-# 4.1 航迹规划解算函数
+# 4.1 规划解算函数
 def simulate_pathPlanner(now_state, wpt_next, filename, tmax, step):
     # next waypoint
     waypoints = wpt_next
@@ -299,23 +302,22 @@ def main():
     wpt_start = np.array([0, 0, 1000])   # 我方起始点
     wpt_target = np.array([-200000, -50000, 5000])   # 敌方起始点
     
-    # SAS航迹节点扩展算法参数设置
-    wptPath_minLen = 5000
+    # SAS节点扩展算法参数设置
+    wptPath_minLen = 15000
     psi_max = np.deg2rad(360)
     theta_max = np.deg2rad(180)
     M = 30
     N = 30
 
     # 航机代价权重系数
-    omega = [0.3, 0.5, 0.2]
+    omega = [0.1, 0.3, 0.5, 0.1]
 
     # 我方可攻击距离
     D = 30000
 
     # 威胁区的参数设置
     threat_pt = np.array([-200000, -50000, 12000])
-    threat_radius = 5000
-    threat_coef = [1.1, 1.2]
+    threat_radius = 20000
     
     # 我方飞机初始状态
     init = [500, deg2rad(2.15), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9]
@@ -324,7 +326,7 @@ def main():
     error = 0
     error_list = [error]
 
-    # 存放敌我双方航迹点坐标，导弹坐标的数组
+    # 存放敌我双方点坐标，导弹坐标的数组
     # global myself_array, target_array, threat_array
 
     myself_array= [wpt_start]
@@ -359,31 +361,32 @@ def main():
     ax.set_xlabel('X', fontdict={'size': 20, 'color': 'red'})
     ax.set_ylabel('Y', fontdict={'size': 15, 'color': 'red'})
     ax.set_zlabel('Z', fontdict={'size': 15, 'color': 'red'})
-    plt.ion()
+    # plt.ion()
 
-    while(iteration <= 100):
+    while(iteration <= 40):
 
-        # 当前航迹点下的后继航迹点备选集
+        # 当前点下的后继点备选集
         nextPossible_wpts = sas(wpt_start, wptPath_minLen, psi_max, theta_max, M, N)
 
-        # 获得后继航迹点集中航迹代价最小的航迹点
-        best_Wpt, best_Wpt_index, cost_next =  best_nextWpt(wpt_start, wptPath_minLen, target_array, nextPossible_wpts, omega, threat_pt, threat_radius, threat_coef, D)
+        # 获得后继点集中代价最小的点
+        best_Wpt, best_Wpt_index, cost_next =  best_nextWpt(wpt_start, target_array, nextPossible_wpts, omega, threat_pt, threat_radius, D)
         
-        print("最佳的下一航迹点是：")
+        print("最佳的下一点是：")
         print(best_Wpt)
+        print("成本是：")
+        print(cost_next)
 
-        # 使飞机到达期望的航迹点
-        res, init_extra, update_extra, skip_override, waypoints = simulate_pathPlanner(init, [best_Wpt], filename, tmax, step)
+        # 使飞机到达期望的点
+        # res, init_extra, update_extra, skip_override, waypoints = simulate_pathPlanner(init, [best_Wpt], filename, tmax, step)
 
         # 更新本机当前坐标
-        init = res['states'][-1]
-        wpt_start = np.array([init[10], init[9], init[11]])
+        # init = res['states'][-1]
+        # wpt_start = np.array([init[10], init[9], init[11]])
+        wpt_start = np.array(best_Wpt)
         myself_array = np.append(myself_array, [wpt_start], axis=0)
-        print("到达的坐标：")
-        print(wpt_start)
 
         # 更新敌机坐标
-        wpt_target = EnemyFly(wpt_target[0], wpt_target[1], wpt_target[2], [1000, 500, 0])
+        wpt_target = EnemyFly(wpt_target[0], wpt_target[1], wpt_target[2], [random.randint(-1000,15000), random.randint(-1000,15000), random.randint(-1000,2000)])
         target_array = np.append(target_array, [wpt_target], axis=0)
 
         # 更新导弹坐标
@@ -391,10 +394,10 @@ def main():
         threat_array = np.append(threat_array, [threat_pt], axis=0)
 
         # 动态三维图显示
-        ax.plot3D(myself_array[:, 0], myself_array[:, 1], myself_array[:, 2], 'blue')
-        ax.plot3D(target_array[:, 0], target_array[:, 1], target_array[:, 2], 'green')
-        ax.plot3D(threat_array[:, 0], threat_array[:, 1], threat_array[:, 2], 'red')
-        plt.pause(0.001)
+        ax.plot3D(myself_array[:, 0], myself_array[:, 1], myself_array[:, 2], 'blue', linestyle='-', marker='o')
+        ax.plot3D(target_array[:, 0], target_array[:, 1], target_array[:, 2], 'green', linestyle='-', marker='o')
+        ax.plot3D(threat_array[:, 0], threat_array[:, 1], threat_array[:, 2], 'red', linestyle='-', marker='o')
+        plt.pause(1)
 
         # 计算每次到达的误差
         error = Euclid(best_Wpt, wpt_start)
@@ -410,7 +413,7 @@ def main():
         # 迭代次数加一
         iteration = iteration + 1
 
-        # 三维动态图需要记录每一段航迹的动画参数
+        # 三维动态图需要记录每一段的动画参数
         # res_list.append(res)
         # scale_list.append(140)
         # viewsize_list.append(12000)
@@ -426,6 +429,7 @@ def main():
 
     print("Finally reach:")
     print(wpt_start)
+    plt.show()
 
     # 画三维动画
     # anim3d.make_anim(res_list, filename, f16_scale=scale_list, viewsize=viewsize_list, viewsize_z=viewsize_z_list,
