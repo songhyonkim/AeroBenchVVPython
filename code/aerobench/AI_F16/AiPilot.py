@@ -97,7 +97,7 @@ def cost(wpt_myself, wpt_next, enemy_points_list, omega, threat_pt, threat_radiu
 
     if(d < D_attack):
         we_attack = 0.5
-        be_follow = np.sqrt(wpt_myself[0]**2 + wpt_myself[1]**2 + wpt_myself[2]**2)/np.sqrt(enemy_points_list[-1,:][0]**2 + enemy_points_list[-1,:][1]**2 + enemy_points_list[-1,:][2]**2)
+        be_follow = np.sqrt(wpt_myself[0]**2 + wpt_myself[1]**2)/np.sqrt(enemy_points_list[-1,:][0]**2 + enemy_points_list[-1,:][1]**2)
         if(dif_h < 0):
             fluel_cost = dif_h
         else:
@@ -288,7 +288,11 @@ def simulate_pathPlanner(now_state, wpt_next, filename, tmax, step):
 
 
 # 第五部分
-# 5.1 主函数
+# 5.1 航迹的目标函数
+
+
+# 第六部分
+# 6.1 主函数
 def main():
     # 若输入了文件名，则生成动态图
     if len(sys.argv) > 1 and (sys.argv[1].endswith('.mp4') or sys.argv[1].endswith('.gif')):
