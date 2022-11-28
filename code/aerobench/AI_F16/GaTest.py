@@ -1,59 +1,11 @@
-import math
 import numpy as np
 import random
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # 空间三维画图
 from operator import itemgetter
+from CostFunctions import fitness_wpt
 
-#复现遗传算法
-
-# 第一部分：评估函数的构造
-def cost(wpt_points, R_attack, Missles, Enemy, omega):
-
-    N_wpt = len(wpt_points)
-    N_missle = len(Missles)
-    start_end_len = Euclid(wpt_points[0,:], wpt_points[N_wpt-1,:])
-
-    # 1. 最小航迹长度代价
-    f_l = sum([Euclid(wpt_points[i,:], wpt_points[i+1,:])/start_end_len for i in range(N_wpt-1)])
-
-    # 2. 最小航迹段方差代价
-    f_v = np.var([Euclid(wpt_points[i,:], wpt_points[i+1,:]) for i in range(N_wpt-1)])/start_end_len
-
-    # 3. 最小被导弹攻击风险
-    f_k = 0
-    for i in range(1, N_wpt-1):
-        for j in range(N_missle):
-            d_ij = Euclid(wpt_points[i,:], Missles[j,:])
-            if(d_ij > R_attack):
-                RK_ij = 0
-            else:
-                RK_ij = R_attack**4/(R_attack**4 + d_ij**4)
-            
-            f_k = f_k + RK_ij
-            
-    # 4. 最小被敌机攻击劣势，受敌机攻击的代价，视线角，单位：弧度
-    f_angle = 0
-    for i in range(N_wpt-1):
-
-        speed_vector_myself = get_vector(wpt_points[i,:], wpt_points[i+1,:])
-        speed_vector_enemy = get_vector(Enemy[-2,:], Enemy[-1,:])
-        myself_to_enemy = get_vector(wpt_points[i+1,:], Enemy[-1,:])
-        enemy_to_myself = get_vector(Enemy[-1,:], wpt_points[i+1,:])
-
-        # 本机相对于敌机的视线角
-        alpha_myself = vectors_angle(speed_vector_enemy, enemy_to_myself)
-        # 敌机相对于本机的视线角
-        alpha_enemy = vectors_angle(speed_vector_myself, myself_to_enemy)
-
-        theta = (alpha_enemy - alpha_myself + np.pi)/(2*np.pi)
-
-        f_angle = f_angle + theta
-
-    return omega[0]*f_l**2 + omega[1]*f_v**2 + omega[2]*f_k**2 + omega[3]*f_angle**2
-
-
-# 第三部分：遗传算法的实现
+# 遗传算法的实现
 class GA:
 
     # 参数初始化
@@ -69,8 +21,8 @@ class GA:
         end = self.parameter[6]
 
         for i in range(3):
-            self.bound[i][0] = min(start[i], end[i])
-            self.bound[i][1] = max(start[i], end[i])
+            self.bound[i][0] = round(min(start[i], end[i]))
+            self.bound[i][1] = round(max(start[i], end[i]))
 
         # 随机生成初始种群
         pop = []
@@ -103,7 +55,7 @@ class GA:
     def evaluate(self, path):
         # outside_info = [R_attack, Missles, Enemy, omega]
         outside_info = self.outside_info
-        fitness = cost(path, outside_info[0], outside_info[1], outside_info[2], outside_info[3])
+        fitness = fitness_wpt(path, outside_info[0], outside_info[1], outside_info[2], outside_info[3])
         return fitness
 
     # 从种群中选择最好的个体
@@ -199,11 +151,11 @@ class GA:
         MUTPB = self.parameter[1]
         k = 40
 
-        print('开始进化')
+        # print('开始进化')
 
         gen_best = []   # 记录每一代最好的个体
         for g in range(N_d):
-            print("目前进化到第{}代".format(g))
+            # print("目前进化到第{}代".format(g))
 
             # 首先在当前种群中按成本从小到大选择个体构成一个种群
             select_pop = self.select(self.pop, k)
@@ -244,80 +196,23 @@ class GA:
 
             gen_best.append(self.best_individual)
 
-            print("当前最好的路径是：{}".format(self.best_individual['Gene']))
-            print("当前最优路径的成本：{}".format(self.best_individual['fitness']))
+            # print("当前最好的路径是：{}".format(self.best_individual['Gene']))
+            # print("当前最优路径的成本：{}".format(self.best_individual['fitness']))
         
         self.gen_best = gen_best     
 
-# 第四部分：功能函数
-# 4.1 计算欧几里得距离
-def Euclid(wpt, wpt_target):
-
-    d = math.sqrt((wpt[0] - wpt_target[0])**2 + (wpt[1] - wpt_target[1])**2 + (wpt[2] - wpt_target[2])**2)
-    
-    return d
-
-# 4.2 速度矢量计算函数
-def get_vector(point_a, point_b):
-
-    vector_x = point_b[0] - point_a[0]
-    vector_y = point_b[1] - point_a[1]
-    vector_z = point_b[2] - point_a[2]
-
-    return [vector_x, vector_y, vector_z]
-
-
-# 4.3 矢量夹角计算函数
-def vectors_angle(vector_a, vector_b):
-
-    length_a = math.sqrt(vector_a[0]**2 + vector_a[1]**2 + vector_a[2]**2)
-    length_b = math.sqrt(vector_b[0]**2 + vector_b[1]**2 + vector_b[2]**2)
-    angle = sum(np.multiply(vector_a, vector_b))/(length_a * length_b)
-
-    return angle
-
-
-# 4.4 敌机飞行函数
-def EnemyFly(x, y, z, speed):
-    # x,y,z：敌机当前的坐标
-    # 输出：下一时刻敌机的坐标
-
-    x_next = x + speed[0]
-    y_next = y + speed[1]
-    z_next = z + speed[2]
-
-    return np.array([x_next, y_next, z_next])
-
-
-# 4.5 导弹飞行函数
-def Missile(m_x, m_y, m_z, my_position):
-    # m_x,m_y,m_z：敌方导弹当前的坐标
-    # my_x, my_y, my_z：我方当前的坐标
-    # 输出：下一时刻敌机导弹的坐标
-
-    theta_x = (m_x - my_position[0])/5
-    theta_y = (m_y - my_position[1])/5
-    theta_z = (m_z - my_position[2])/5
-
-    mx_next = m_x - theta_x
-    my_next = m_y - theta_y
-    mz_next = m_z - theta_z
-
-    return np.array([mx_next, my_next, mz_next])
-
-
-# 第五部分：测试
+# 测试
 def main():
     CXPB, MUTPB, N_d, popsize, N_wpt = 0.9, 0.2, 1000, 80, 5
-    start = np.array([0, 10, 200])
-    end = np.array([-100, 30, 70])
+    start = np.array([0, 1000, 20000])
+    end = np.array([-1000, 3000, 30000])
     ga_parameter = [CXPB, MUTPB, N_d, popsize, N_wpt, start, end]
 
-    R_attack = 50
+    R_attack = 50000
     Missles = [np.array([0,0,0])]
-    Missles = np.append(Missles, [np.array([-50,50,120])], axis=0)
+    Missles = np.append(Missles, [np.array([-500,5000,12000])], axis=0)
     Enemy = [end]
-    Enemy = np.append(Enemy, [np.array([-50,50,120])], axis=0)
+    Enemy = np.append(Enemy, [np.array([-5000,5000,12000])], axis=0)
     omega = [0.2, 0.4, 0.2, 0.2]
     outside_info  = [R_attack, Missles, Enemy, omega]
 
