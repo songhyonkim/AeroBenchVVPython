@@ -17,7 +17,10 @@ def cost(wpt_points, R_attack, Missles, Enemy, omega):
     # 1. 最小航迹长度代价
     f_l = sum([Euclid(wpt_points[i,:], wpt_points[i+1,:])/start_end_len for i in range(N_wpt-1)])
 
-    # 2. 最小被导弹攻击风险
+    # 2. 最小航迹段方差代价
+    f_v = np.var([Euclid(wpt_points[i,:], wpt_points[i+1,:]) for i in range(N_wpt-1)])/start_end_len
+
+    # 3. 最小被导弹攻击风险
     f_k = 0
     for i in range(1, N_wpt-1):
         for j in range(N_missle):
@@ -29,25 +32,25 @@ def cost(wpt_points, R_attack, Missles, Enemy, omega):
             
             f_k = f_k + RK_ij
             
-    # 3. 最小被敌机攻击劣势，受敌机攻击的代价，视线角，单位：弧度
+    # 4. 最小被敌机攻击劣势，受敌机攻击的代价，视线角，单位：弧度
     f_angle = 0
-    # for i in range(N_wpt-1):
+    for i in range(N_wpt-1):
 
-    #     speed_vector_myself = get_vector(wpt_points[i,:], wpt_points[i+1,:])
-    #     speed_vector_enemy = get_vector(Enemy[-2,:], Enemy[-1,:])
-    #     myself_to_enemy = get_vector(wpt_points[i+1,:], Enemy[-1,:])
-    #     enemy_to_myself = get_vector(Enemy[-1,:], wpt_points[i+1,:])
+        speed_vector_myself = get_vector(wpt_points[i,:], wpt_points[i+1,:])
+        speed_vector_enemy = get_vector(Enemy[-2,:], Enemy[-1,:])
+        myself_to_enemy = get_vector(wpt_points[i+1,:], Enemy[-1,:])
+        enemy_to_myself = get_vector(Enemy[-1,:], wpt_points[i+1,:])
 
-    #     # 本机相对于敌机的视线角
-    #     alpha_myself = vectors_angle(speed_vector_enemy, enemy_to_myself)
-    #     # 敌机相对于本机的视线角
-    #     alpha_enemy = vectors_angle(speed_vector_myself, myself_to_enemy)
+        # 本机相对于敌机的视线角
+        alpha_myself = vectors_angle(speed_vector_enemy, enemy_to_myself)
+        # 敌机相对于本机的视线角
+        alpha_enemy = vectors_angle(speed_vector_myself, myself_to_enemy)
 
-    #     theta = (alpha_enemy - alpha_myself + np.pi)/(2*np.pi)
+        theta = (alpha_enemy - alpha_myself + np.pi)/(2*np.pi)
 
-    #     f_angle = f_angle + theta
+        f_angle = f_angle + theta
 
-    return omega[0]*f_l**2 + omega[1]*f_k**2 + omega[2]*f_angle**2
+    return omega[0]*f_l**2 + omega[1]*f_v**2 + omega[2]*f_k**2 + omega[3]*f_angle**2
 
 
 # 第三部分：遗传算法的实现
@@ -60,7 +63,7 @@ class GA:
         self.parameter = ga_parameter
         self.outside_info = outside_info
 
-        # 约束条件
+        # 约束条件(有待优化)
         self.bound = [[0,0],[0,0],[0,0]]
         start = self.parameter[5]
         end = self.parameter[6]
@@ -76,9 +79,11 @@ class GA:
             # 个体
             gen_path = [start]
             for j in range(self.parameter[4]):
+                
                 x = random.randint(self.bound[0][0], self.bound[0][1])
                 y = random.randint(self.bound[1][0], self.bound[1][1])
                 z = random.randint(self.bound[2][0], self.bound[2][1])
+
                 gen_path = np.append(gen_path, [np.array([x,y,z])], axis=0)
             
             gen_path = np.append(gen_path, [end], axis=0)
@@ -192,6 +197,7 @@ class GA:
         N_d = self.parameter[2]
         CXPB = self.parameter[0]
         MUTPB = self.parameter[1]
+        k = 40
 
         print('开始进化')
 
@@ -199,13 +205,13 @@ class GA:
         for g in range(N_d):
             print("目前进化到第{}代".format(g))
 
-            # 首先在当前种群中按适应度从大到小选择个体构成一个种群
-            select_pop = self.select(self.pop, 20)
+            # 首先在当前种群中按成本从小到大选择个体构成一个种群
+            select_pop = self.select(self.pop, k)
 
             # 对该种群进行交叉变异操作，产生下一代种群
             nextoff = []
 
-            while len(nextoff) != 20:
+            while len(nextoff) != k:
                 
                 offspring = [select_pop.pop() for _ in range(2)]
 
@@ -233,7 +239,7 @@ class GA:
             # 当前成本最小的个体
             best_ind = self.selectBest(self.pop)
 
-            if best_ind['fitness'] > self.best_individual['fitness']:
+            if best_ind['fitness'] < self.best_individual['fitness']:
                 self.best_individual = best_ind
 
             gen_best.append(self.best_individual)
@@ -302,7 +308,7 @@ def Missile(m_x, m_y, m_z, my_position):
 
 # 第五部分：测试
 def main():
-    CXPB, MUTPB, N_d, popsize, N_wpt = 0.8, 0.1, 100, 50, 5
+    CXPB, MUTPB, N_d, popsize, N_wpt = 0.9, 0.2, 1000, 80, 5
     start = np.array([0, 10, 200])
     end = np.array([-100, 30, 70])
     ga_parameter = [CXPB, MUTPB, N_d, popsize, N_wpt, start, end]
@@ -311,15 +317,14 @@ def main():
     Missles = [np.array([0,0,0])]
     Missles = np.append(Missles, [np.array([-50,50,120])], axis=0)
     Enemy = [end]
-    Enemy = np.append(Enemy, [end], axis=0)
-    omega = [0.5, 0.3, 0.2]
+    Enemy = np.append(Enemy, [np.array([-50,50,120])], axis=0)
+    omega = [0.2, 0.4, 0.2, 0.2]
     outside_info  = [R_attack, Missles, Enemy, omega]
 
     ga = GA(ga_parameter, outside_info)
 
     ga.ga_main()
     
-
     gen_best = ga.gen_best
 
     # 画图
@@ -334,10 +339,13 @@ def main():
         plt.cla()
         ax.scatter(start[0], start[1], start[2], 'red')
         ax.scatter(end[0], end[1], end[2], 'green')
+        ax.scatter(Missles[0,0], Missles[0,1], Missles[0,2], 'black')
+        ax.scatter(Missles[1,0], Missles[1,1], Missles[1,2], 'black')
         ax.plot3D(gen_best[i]['Gene'][:, 0], gen_best[i]['Gene'][:, 1], gen_best[i]['Gene'][:, 2], 'blue', linestyle='-', marker='o')
-        plt.pause(0.5)
+        plt.pause(0.005)
 
     plt.show()
+
 
 if __name__ == '__main__':
     main()

@@ -58,26 +58,6 @@ def sas(wpt_myself, wptPath_minLen, psi_max, theta_max, M, N):
 
 # 1.2 代价函数
 def cost(wpt_myself, wpt_next, enemy_points_list, omega, threat_pt, threat_radius, D_attack):
-    # wpt_myself:当前点的坐标
-    # wpt_next:下一点的坐标
-    # enemy_points_list:目标点
-    # omega:权重系数
-    # threat_pt:威胁点的坐标信息
-    # threat_radius:威胁半径
-    # D_attack:飞机可攻击距离
-
-    # # 受敌机攻击的代价，视线角，单位：度
-    # speed_vector_myself = get_vector(wpt_myself, wpt_next)
-    # speed_vector_enemy = get_vector(enemy_points_list[-2,:], enemy_points_list[-1,:])
-    # myself_to_enemy = get_vector(wpt_next, enemy_points_list[-1,:])
-    # enemy_to_myself = get_vector(enemy_points_list[-1,:], wpt_next)
-
-    # # 本机相对于敌机的视线角
-    # alpha_myself = vectors_angle(speed_vector_enemy, enemy_to_myself)
-    # # 敌机相对于本机的视线角
-    # alpha_enemy = vectors_angle(speed_vector_myself, myself_to_enemy)
-
-    # theta = (alpha_enemy - alpha_myself + np.pi)/(2*np.pi)
 
     # 受导弹攻击的代价
     # 下一点与导弹的距离
