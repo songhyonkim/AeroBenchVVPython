@@ -41,11 +41,9 @@ def sas(wpt_myself, wptPath_minLen, psi_max, theta_max, M, N):
 
     # 应当考虑路径分段
     psi_list = [psi_max/N*i for i in range(N+1)]
-    theta_list = [-theta_max/2 + theta_max/M*i for i in range(M+1)]
+    theta_list = [theta_max/M*i for i in range(M+1)]
 
-    nextPossible_wpts_x = []
-    nextPossible_wpts_y = []
-    nextPossible_wpts_z = []
+    nextPossible_wpts = []
 
     
     for i in range(M):
@@ -54,11 +52,9 @@ def sas(wpt_myself, wptPath_minLen, psi_max, theta_max, M, N):
             y = wptPath_minLen*math.sin(theta_list[i])*math.sin(psi_list[j]) + wpt_myself[1]
             z = wptPath_minLen*math.cos(theta_list[i]) + wpt_myself[2]
 
-            nextPossible_wpts_x.append(x)
-            nextPossible_wpts_y.append(y)
-            nextPossible_wpts_z.append(z)
+            nextPossible_wpts.append([x,y,z])
 
-    return [nextPossible_wpts_x, nextPossible_wpts_y, nextPossible_wpts_z]
+    return nextPossible_wpts
 
 # 第二部分
 # 2.1 后继节点集中选择代价最小的点
@@ -71,12 +67,11 @@ def best_nextWpt(wpt_myself, enemy_points_list, nextPossible_wpts, omega, threat
     # threat_radius:威胁半径
     # D_attack:飞机可攻击距离
 
-    cost_list = [cost(wpt_myself, [nextPossible_wpts[0][i], nextPossible_wpts[1][i], nextPossible_wpts[2][i]], 
-                enemy_points_list, omega, threat_pt, threat_radius, D_attack) for i in range(len(nextPossible_wpts[0]))]
+    cost_list = cost(wpt_myself, nextPossible_wpts, enemy_points_list, omega, threat_pt, threat_radius, D_attack)
 
     best_Wpt_index = cost_list.index(min(cost_list))
 
-    best_Wpt = [nextPossible_wpts[0][best_Wpt_index], nextPossible_wpts[1][best_Wpt_index], nextPossible_wpts[2][best_Wpt_index]]
+    best_Wpt = nextPossible_wpts[best_Wpt_index]
 
     return best_Wpt, best_Wpt_index, min(cost_list)
 
@@ -168,14 +163,14 @@ def main():
     wpt_target = np.array([200000, 50000, 5000])   # 敌方起始点
     
     # SAS节点扩展算法参数设置
-    wptPath_minLen = 15000
+    wptPath_minLen = 5000   
     psi_max = np.deg2rad(360)
     theta_max = np.deg2rad(180)
     M = 30
     N = 30
 
     # 路径节点代价权重系数
-    omega1 = [0.1, 0.3, 0.5, 0.1]
+    omega1 = [0.3, 0.3, 0.2, 0.2]
 
     # 我方可攻击距离
     distance = D = 30000
@@ -185,7 +180,7 @@ def main():
     threat_radius = 20000
     
     # 我方飞机初始状态
-    init = [600, deg2rad(2.15), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9]
+    init = [1500, deg2rad(2.15), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9]
 
     # 记录飞机实际到达坐标与期望坐标的误差
     error = 0
@@ -208,7 +203,7 @@ def main():
     step = 1/10
 
     # 遗传算法部分固定参数
-    CXPB, MUTPB, N_d, popsize, N_wpt = 0.9, 0.2, 2000, 50, 3
+    CXPB, MUTPB, N_d, popsize, N_wpt = 0.9, 0.2, 2000, 50, 2
     omega2 = [0.3, 0.5, 0.1, 0.1]
 
     # 动态图参数记录
@@ -244,18 +239,18 @@ def main():
 
     # plt.ion()
 
-    while(distance >= D and wpt_start[2] < wpt_target[2]):
+    while(1):
 
         # 当前点下的后继点备选集
         nextPossible_wpts = sas(wpt_start, wptPath_minLen, psi_max, theta_max, M, N)
 
         # 获得后继点集中代价最小的点
-        best_Wpt, best_Wpt_index, cost_next =  best_nextWpt(wpt_start, target_array, nextPossible_wpts, omega1, threat_pt, threat_radius, D)
+        best_Wpt, best_Wpt_index, cost =  best_nextWpt(wpt_start, target_array, nextPossible_wpts, omega1, threat_pt, threat_radius, D)
         
         print("最佳的下一点是：")
         print(best_Wpt)
         print("成本是：")
-        print(cost_next)
+        print(cost)
 
         # 用遗传算法规划航迹点
         parameter = [CXPB, MUTPB, N_d, popsize, N_wpt, wpt_start, best_Wpt]
@@ -277,25 +272,26 @@ def main():
         myself_array = np.append(myself_array, [wpt_start], axis=0)
 
         # 更新敌机坐标
-        wpt_target = EnemyFly(wpt_target[0], wpt_target[1], wpt_target[2], [random.randint(-1000,5000), random.randint(-1000,5000), random.randint(-100,1000)])
+        wpt_target = EnemyFly(wpt_target[0], wpt_target[1], wpt_target[2], [random.randint(-4000,1000), random.randint(-1000,4000), random.randint(-500,1000)])
         target_array = np.append(target_array, [wpt_target], axis=0)
 
         # 更新导弹坐标
         threat_pt = Missile(threat_pt[0], threat_pt[1], threat_pt[2], wpt_start)
         threat_array = np.append(threat_array, [threat_pt], axis=0)
 
-        # 动态三维图显示
-        ax.plot3D(myself_array[:, 0], myself_array[:, 1], myself_array[:, 2], 'blue', linestyle='-', marker='o')
-        ax.plot3D(target_array[1:, 0], target_array[1:, 1], target_array[1:, 2], 'green', linestyle='-', marker='o')
-        ax.plot3D(threat_array[:, 0], threat_array[:, 1], threat_array[:, 2], 'red', linestyle='-', marker='o')
-        plt.pause(0.5)
-       
-
         # 计算与敌机的距离
         distance = Euclid(wpt_start, wpt_target)
         print('与敌机距离：')
         print(distance)
 
+        # 动态三维图显示
+        ax.plot3D(myself_array[:, 0], myself_array[:, 1], myself_array[:, 2], 'blue', linestyle='-', marker='o')
+        ax.plot3D(target_array[1:, 0], target_array[1:, 1], target_array[1:, 2], 'green', linestyle='-', marker='o')
+        ax.plot3D(threat_array[:, 0], threat_array[:, 1], threat_array[:, 2], 'red', linestyle='-', marker='o')
+        text = f'distance between my F16 and enemy : {distance:.3f}'
+        ax.set_title(text)
+        plt.pause(0.1)
+       
         # 迭代次数加一
         iteration = iteration + 1
 
@@ -319,6 +315,9 @@ def main():
         # fixed_floor_list.append(True)
         # init_extra_list.append(init_extra)
         # update_extra_list.append(update_extra)
+
+        if distance <= D and (wpt_start[2] >= wpt_target[2]):
+            break
 
     print("Finally reach:")
     print(wpt_start)

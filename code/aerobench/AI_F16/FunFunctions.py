@@ -63,9 +63,12 @@ def Missile(m_x, m_y, m_z, my_position):
 
 # 3.7 归一化函数
 def normalization(data_list):
-    _range = np.max(data_list) - np.min(data_list)
-
-    return (data_list - np.min(data_list))/_range
+    b = set(data_list)
+    if len(b) == 1:
+        return data_list
+    else:
+        _range = max(data_list) - min(data_list)
+        return [(data_list[i] - min(data_list))/_range for i in range(len(data_list))]
 
 
 # 3.8 画威胁球体的函数

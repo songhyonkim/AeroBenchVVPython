@@ -203,7 +203,7 @@ def run_f16_sim(initial_state, tmax, ap, step=1/30, extended_states=False, model
                     integrator = integrator_class(der_func, times[-1], states[-1], tmax, **kwargs)
                     break
 
-    # assert 'finished' in integrator.status
+    assert 'finished' in integrator.status
 
     res = {}
     res['status'] = integrator.status
