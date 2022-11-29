@@ -165,23 +165,23 @@ def main():
 
 
     wpt_start = np.array([0, 0, 1000])   # 我方起始点
-    wpt_target = np.array([-200000, -50000, 5000])   # 敌方起始点
+    wpt_target = np.array([200000, 50000, 5000])   # 敌方起始点
     
     # SAS节点扩展算法参数设置
-    wptPath_minLen = 10000
+    wptPath_minLen = 15000
     psi_max = np.deg2rad(360)
     theta_max = np.deg2rad(180)
     M = 30
     N = 30
 
     # 路径节点代价权重系数
-    omega1 = [0, 0.3, 0.5, 0.1]
+    omega1 = [0.1, 0.3, 0.5, 0.1]
 
     # 我方可攻击距离
-    D = 30000
+    distance = D = 30000
 
     # 威胁区的参数设置
-    threat_pt = np.array([-200000, -50000, 12000])
+    threat_pt = np.array([200000, 50000, 12000])
     threat_radius = 20000
     
     # 我方飞机初始状态
@@ -205,11 +205,11 @@ def main():
 
     # 解算时间和步长
     tmax = 30
-    step = 1/100
+    step = 1/10
 
     # 遗传算法部分固定参数
-    CXPB, MUTPB, N_d, popsize, N_wpt = 0.9, 0.2, 1000, 80, 3
-    omega2 = [0.2, 0.4, 0.2, 0.2]
+    CXPB, MUTPB, N_d, popsize, N_wpt = 0.9, 0.2, 2000, 50, 3
+    omega2 = [0.3, 0.5, 0.1, 0.1]
 
     # 动态图参数记录
     res_list = []
@@ -244,9 +244,8 @@ def main():
 
     # plt.ion()
 
-    while(iteration <= 40):
+    while(distance >= D and wpt_start[2] < wpt_target[2]):
 
-        print("当前到第{}个点了".format(iteration))
         # 当前点下的后继点备选集
         nextPossible_wpts = sas(wpt_start, wptPath_minLen, psi_max, theta_max, M, N)
 
@@ -260,13 +259,13 @@ def main():
 
         # 用遗传算法规划航迹点
         parameter = [CXPB, MUTPB, N_d, popsize, N_wpt, wpt_start, best_Wpt]
-        outside_info = [D, threat_array, target_array, omega2]
+        outside_info = [D, [threat_array], target_array, omega2]
 
         ga = GaTest.GA(parameter, outside_info)
         ga.ga_main()
 
         best_wpts = ga.best_individual['Gene'].tolist()
-        print("飞到下一点的路径：")
+        print("飞到下一点的路径是：")
         print(best_wpts)
 
         # 使飞机按照规划的航迹点飞行
@@ -276,12 +275,6 @@ def main():
         init = res['states'][-1]
         wpt_start = np.array([init[10], init[9], init[11]])
         myself_array = np.append(myself_array, [wpt_start], axis=0)
-
-        # 计算每次到达的误差
-        error = Euclid(best_Wpt, wpt_start)
-        error_list.append(error)
-        print('到达误差：')
-        print(error)
 
         # 更新敌机坐标
         wpt_target = EnemyFly(wpt_target[0], wpt_target[1], wpt_target[2], [random.randint(-1000,5000), random.randint(-1000,5000), random.randint(-100,1000)])
@@ -305,6 +298,13 @@ def main():
 
         # 迭代次数加一
         iteration = iteration + 1
+
+        # 计算每次到达的误差
+        print("当前飞到第{}个点{}".format(iteration, wpt_start))
+        error = Euclid(best_Wpt, wpt_start)
+        error_list.append(error)
+        print('到达误差：')
+        print(error)
 
         # 三维动态图需要记录每一段的动画参数
         # res_list.append(res)

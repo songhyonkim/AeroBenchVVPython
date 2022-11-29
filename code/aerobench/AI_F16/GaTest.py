@@ -149,7 +149,7 @@ class GA:
         N_d = self.parameter[2]
         CXPB = self.parameter[0]
         MUTPB = self.parameter[1]
-        k = 40
+        k = 30
 
         # print('开始进化')
 
@@ -203,18 +203,19 @@ class GA:
 
 # 测试
 def main():
-    CXPB, MUTPB, N_d, popsize, N_wpt = 0.9, 0.2, 1000, 80, 5
+    CXPB, MUTPB, N_d, popsize, N_wpt = 0.9, 0.2, 2000, 50, 3
     start = np.array([0, 1000, 20000])
     end = np.array([-1000, 3000, 30000])
     ga_parameter = [CXPB, MUTPB, N_d, popsize, N_wpt, start, end]
 
-    R_attack = 50000
-    Missles = [np.array([0,0,0])]
-    Missles = np.append(Missles, [np.array([-500,5000,12000])], axis=0)
+    R_attack = 10000
+    Missles = [np.array([-500,2000,20000])]
+    Missles = np.append(Missles, [np.array([500,-2000,25000])], axis=0)
+    Missles = np.append(Missles, [np.array([0,8000,30000])], axis=0)
     Enemy = [end]
-    Enemy = np.append(Enemy, [np.array([-5000,5000,12000])], axis=0)
-    omega = [0.2, 0.4, 0.2, 0.2]
-    outside_info  = [R_attack, Missles, Enemy, omega]
+    Enemy = np.append(Enemy, [np.array([-1000,5000,12000])], axis=0)
+    omega = [0.3, 0.5, 0.1, 0.1]
+    outside_info  = [R_attack, [Missles], Enemy, omega]
 
     ga = GA(ga_parameter, outside_info)
 
@@ -236,8 +237,12 @@ def main():
         ax.scatter(end[0], end[1], end[2], 'green')
         ax.scatter(Missles[0,0], Missles[0,1], Missles[0,2], 'black')
         ax.scatter(Missles[1,0], Missles[1,1], Missles[1,2], 'black')
+        ax.scatter(Missles[2,0], Missles[2,1], Missles[2,2], 'black')
         ax.plot3D(gen_best[i]['Gene'][:, 0], gen_best[i]['Gene'][:, 1], gen_best[i]['Gene'][:, 2], 'blue', linestyle='-', marker='o')
-        plt.pause(0.005)
+        cost = gen_best[i]['fitness']
+        text = f'cost = {cost:.3f}'
+        ax.set_title(text)
+        plt.pause(0.00005)
 
     plt.show()
 
