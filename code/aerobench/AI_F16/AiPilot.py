@@ -13,7 +13,6 @@ import GaTest
 from FunFunctions import Euclid, Missile, EnemyFly
 from CostFunctions import cost
 
-
 # 第一部分
 # 1.1 节点扩展函数--SAS搜索算法
 # 算法目的：在规划空间中生成备选节点集
