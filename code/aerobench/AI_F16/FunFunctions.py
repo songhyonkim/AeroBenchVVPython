@@ -1,6 +1,8 @@
 import math
 import numpy as np
-
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+from mpl_toolkits.mplot3d import Axes3D  # 空间三维画图
 
 # 第三部分
 # 一些功能函数的实现
@@ -84,6 +86,17 @@ def ball(center, radius):
     z = radius*np.cos(v) + center[2]
 
     return x, y, z
+
+# 3.9 三维画图函数
+def plot_point(pos_data):
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    ax.set_xlabel('X', fontdict={'size': 20, 'color': 'red'})
+    ax.set_ylabel('Y', fontdict={'size': 15, 'color': 'red'})
+    ax.set_zlabel('Z', fontdict={'size': 15, 'color': 'red'})
+
+    ax.scatter(pos_data[:, 0], pos_data[:, 1], pos_data[:, 2], 'blue', marker='o')
+    plt.show()
 
 
 
