@@ -12,21 +12,7 @@ more information: https://github.com/pheidlauf/AeroBenchVV
 
 For citation purposes, please use: "Verification Challenges in F-16 Ground Collision Avoidance and Other Automated Maneuvers", P. Heidlauf, A. Collins, M. Bolender, S. Bak, 5th International Workshop on Applied Verification for Continuous and Hybrid Systems (ARCH 2018)
 
-# Required Libraries 
+# 基于遗传算法的离线航迹规划
 
-The following Python libraries are required (can be installed using `sudo pip install <library>`):
-
-`numpy` - for matrix operations
-
-`scipy` - for simulation / numerical integration (RK45) and trim condition optimization 
-
-`matplotlib` - for animation / plotting (requires `ffmpeg` for .mp4 output or `imagemagick` for .gif
-
-`slycot` - for control design (not needed for simulation)
-
-`control` - for control design (not needed for simulation)
-
-### Release Documentation
-Distribution A: Approved for Public Release (88ABW-2020-2188) (changes in this version)
-    
-Distribution A: Approved for Public Release (88ABW-2017-6379) (v1)
+![GA_path7](https://user-images.githubusercontent.com/68150454/211138603-c6683e96-47dd-439f-a485-28b67012d704.jpg)
+![GA_offline7](https://user-images.githubusercontent.com/68150454/211138644-b32cd47f-8259-44fa-af7d-b7ecc3ecf487.gif)
