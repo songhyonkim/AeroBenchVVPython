@@ -91,11 +91,14 @@ def main():
     plt.savefig('gcas_attitude.png')
     plt.close()
     
+    v = [res['states'][i][0] for i in range(len(res['states']))]
+    alt = [res['states'][i][11] for i in range(len(res['states']))]
+
     # 输出控制指令数据到csv
-    cmd_list = [res['times'], res['throttle_list'], res['ele_list'], res['ali_list'], res['rud_list'],
+    cmd_list = [res['times'], v, alt, res['throttle_list'], res['ele_list'], res['ali_list'], res['rud_list'],
      res['moment_aileron'], res['power_aileron'], res['moment_elevator'], res['power_elevator'], res['moment_rudder'], res['power_rudder']]
     cmd_array = np.array(cmd_list).T
-    column = ['time', 'throttle', 'elevator', 'aileron', 'rudder', 
+    column = ['time', 'velocity', 'altitude', 'throttle', 'elevator', 'aileron', 'rudder', 
     'moment_aileron', 'power_aileron', 'moment_elevator', 'power_elevator', 'moment_rudder', 'power_rudder']
     
     cmd_data = pd.DataFrame(columns=column, data=cmd_array)

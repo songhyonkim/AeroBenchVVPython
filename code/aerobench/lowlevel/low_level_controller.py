@@ -19,6 +19,7 @@ class CtrlLimits(Freezable):
         self.RudderMaxDeg = 30
         self.RudderMinDeg = -30
         
+        
         self.NzMax = 6
         self.NzMin = -1
 

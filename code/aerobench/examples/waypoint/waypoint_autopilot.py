@@ -10,15 +10,17 @@ import numpy as np
 from aerobench.highlevel.autopilot import Autopilot
 from aerobench.util import StateIndex
 from aerobench.lowlevel.low_level_controller import LowLevelController
+from aerobench.AI_F16.FunFunctions import Euclid
 
 class WaypointAutopilot(Autopilot):
     '''waypoint follower autopilot'''
 
-    def __init__(self, waypoints, gain_str='old', stdout=False):
+    def __init__(self, waypoints, out_info, gain_str='old', stdout=False):
         'waypoints is a list of 3-tuples'
 
         self.stdout = stdout
         self.waypoints = waypoints
+        self.out_info = out_info    # 外部信息, out_info = min_h
         self.waypoint_index = 0
 
         # waypoint config
@@ -29,10 +31,12 @@ class WaypointAutopilot(Autopilot):
 
         # control config
         # Gains for speed control
-        self.cfg_k_vt = 0.25
-        self.cfg_airspeed = 550
+        self.cfg_k_vt = 0.5
+        self.cfg_airspeed = 450
 
         # Gains for altitude tracking
+        # self.cfg_k_alt = 0.005
+        # self.cfg_k_h_dot = 0.02
         self.cfg_k_alt = 0.005
         self.cfg_k_h_dot = 0.02
 
@@ -101,11 +105,12 @@ class WaypointAutopilot(Autopilot):
         h_error = h_cmd - h
         nz_alt = self.track_altitude_wings_level(x_f16)
         nz_roll = get_nz_for_level_turn_ol(x_f16)
+        # nz_roll = 0
 
         if h_error > 0:
             # Ascend wings level or banked
             nz = nz_alt + nz_roll
-        elif abs(phi) < np.deg2rad(15):
+        elif abs(phi) < np.deg2rad(25):
             # Descend wings (close enough to) level
             nz = nz_alt + nz_roll
         else:
@@ -152,8 +157,14 @@ class WaypointAutopilot(Autopilot):
     def track_airspeed(self, x_f16):
         'get throttle command'
 
-        vt_cmd = self.cfg_airspeed
-
+        # vt_cmd = self.cfg_airspeed
+        # 重新计算期望速度
+        desired_point = self.waypoints[self.waypoint_index-1]
+        now_point = [x_f16[StateIndex.POSE],x_f16[StateIndex.POSN],x_f16[StateIndex.ALT]]
+        distance_error = Euclid(desired_point, now_point)
+        
+        vt_cmd = max(0.7, min(distance_error/self.out_info, 1.5))*self.cfg_airspeed
+        
         # Proportional control on airspeed using throttle
         throttle = self.cfg_k_vt * (vt_cmd - x_f16[StateIndex.VT])
 
@@ -175,8 +186,10 @@ class WaypointAutopilot(Autopilot):
         h_dot = vt * sin(gamma) # Calculated, not differentiated
 
         # Calculate Nz command
-        nz = self.cfg_k_alt*h_error - self.cfg_k_h_dot*h_dot
-
+        if(h_error>0):
+            nz = 0.95*self.cfg_k_alt*h_error - self.cfg_k_h_dot*h_dot
+        else:
+            nz = self.cfg_k_alt*h_error - 0.95*self.cfg_k_h_dot*h_dot
         return nz
 
     def is_finished(self, t, x_f16):

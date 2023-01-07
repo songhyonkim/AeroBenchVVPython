@@ -27,7 +27,7 @@ def get_script_path(filename=__file__):
     '''get the path this script'''
     return os.path.dirname(os.path.realpath(filename))
 
-def make_anim(res, filename, viewsize=1000, viewsize_z=1000, f16_scale=30, trail_pts=60,
+def make_anim(res, filename, threat, viewsize=1000, viewsize_z=1000, f16_scale=30, trail_pts=60,
               elev=30, azim=45, skip_frames=None, chase=False, fixed_floor=False,
               init_extra=None, update_extra=None):
     '''
@@ -39,6 +39,8 @@ def make_anim(res, filename, viewsize=1000, viewsize_z=1000, f16_scale=30, trail
     plot.init_plot()
     start = time.time()
 
+
+    # 把状态量存储为列表，方便绘制多个仿真结果
     if not isinstance(res, list):
         res = [res]
 
@@ -127,8 +129,7 @@ def make_anim(res, filename, viewsize=1000, viewsize_z=1000, f16_scale=30, trail
     fig = plt.figure(figsize=(8, 7))
     ax = fig.add_subplot(111, projection='3d')
 
-    ##
-
+    ## 加载F-16模型数据
     parent = get_script_path()
     plane_point_data = os.path.join(parent, 'f-16.mat')
 
@@ -136,12 +137,17 @@ def make_anim(res, filename, viewsize=1000, viewsize_z=1000, f16_scale=30, trail
     f16_pts = data['V']
     f16_faces = data['F']
 
+    # 立方体动画
     plane_polys = Poly3DCollection([], color=None if full_plot else 'k')
     ax.add_collection3d(plane_polys)
 
     ax.set_xlabel('X [ft]', fontsize=14)
     ax.set_ylabel('Y [ft]', fontsize=14)
     ax.set_zlabel('Altitude [ft]', fontsize=14)
+
+    ax.plot_surface(threat[0][0], threat[0][1], threat[0][2], linewidth=0.0)
+    ax.plot_surface(threat[1][0], threat[1][1], threat[1][2], linewidth=0.0)
+
 
     # text
     fontsize = 14

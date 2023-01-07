@@ -9,8 +9,8 @@ from mpl_toolkits.mplot3d import Axes3D  # 空间三维画图
 
 # 3.1 计算欧几里得距离
 def Euclid(wpt, wpt_target):
-
-    d = math.sqrt((wpt[0] - wpt_target[0])**2 + (wpt[1] - wpt_target[1])**2 + (wpt[2] - wpt_target[2])**2)
+    
+    d = np.sqrt((wpt[0] - wpt_target[0])**2 + (wpt[1] - wpt_target[1])**2 + (wpt[2] - wpt_target[2])**2)
     
     return d
 

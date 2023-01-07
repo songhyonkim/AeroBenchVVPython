@@ -5,55 +5,32 @@ from FunFunctions import Euclid, get_vector, vectors_angle, normalization
 # 实现航迹点评价函数和路径点评价函数
 
 # 2.1 航迹点评价函数
-def fitness_wpt(wpt_points, R_attack, Missles, Enemy, omega):
+def fitness_wpt(wpt_points, good_points, threat_p, threat_r, omega):
 
+    # 航迹段中的点数
     N_wpt = len(wpt_points)
-    N_missle = len(Missles)
-    start_end_len = Euclid(wpt_points[0,:], wpt_points[N_wpt-1,:])
-    dl_list = [Euclid(wpt_points[i,:], wpt_points[i+1,:]) for i in range(N_wpt-1)]
+    # 航迹段的直线距离
+    wpt_len = Euclid(wpt_points[0,:], wpt_points[N_wpt-1,:])
+    # 航迹段中相邻点的距离
+    dl_list = [Euclid(wpt_points[i,:], wpt_points[i+1,:])/wpt_len for i in range(N_wpt-1)]
+    # 航迹段中各点受威胁程度
+    dt_list = []
+    for i in range(N_wpt-1):
+        t = 0
+        for j in range(len(threat_p)):
+            t+=threat_r/(Euclid(wpt_points[i,:], threat_p[j])+threat_r)
+        dt_list.append(t)
 
-    # 1. 最小航迹长度代价
-    f_l = sum(dl_list)/start_end_len
+    # 1. 航迹长度代价
+    f_l = sum(dl_list)
 
-    # 2. 最小航迹迂回代价
-    f_v = sum([Euclid(wpt_points[i+1,:], Enemy[-1,:])/Euclid(wpt_points[i,:], Enemy[-1,:]) for i in range(N_wpt-1)])
+    # 2. 被威胁代价
+    f_t = sum(dt_list)
 
+    # 3. 约束条件代价
+    f_c = good_points
 
-    # 3. 最小被导弹攻击风险
-    f_k = 0
-    for i in range(1, N_wpt-1):
-        for j in range(N_missle):
-            d_ij = Euclid(wpt_points[i,:], Missles[j][-1,:])
-            if(d_ij > R_attack):
-                RK_ij = 0
-            else:
-                RK_ij = R_attack/(R_attack + d_ij)
-            
-            f_k = f_k + RK_ij
-
-    # 4. 最小航迹段方差代价
-    f_var = np.var(dl_list)/max(dl_list)**2
-            
-    # # 4. 最小被敌机攻击劣势，受敌机攻击的代价，视线角，单位：弧度
-    # f_angle = 0
-    # for i in range(N_wpt-1):
-
-    #     speed_vector_myself = get_vector(wpt_points[i,:], wpt_points[i+1,:])
-    #     speed_vector_enemy = get_vector(Enemy[-2,:], Enemy[-1,:])
-    #     myself_to_enemy = get_vector(wpt_points[i+1,:], Enemy[-1,:])
-    #     enemy_to_myself = get_vector(Enemy[-1,:], wpt_points[i+1,:])
-
-    #     # 本机相对于敌机的视线角
-    #     alpha_myself = vectors_angle(speed_vector_enemy, enemy_to_myself)
-    #     # 敌机相对于本机的视线角
-    #     alpha_enemy = vectors_angle(speed_vector_myself, myself_to_enemy)
-
-    #     theta = (alpha_enemy - alpha_myself + np.pi)/(2*np.pi)
-
-    #     f_angle = f_angle + theta
-
-
-    return omega[0]*f_l**2 + omega[1]*f_v**2 + omega[2]*f_k**2 + omega[3]*f_var**2
+    return omega[0]*f_l**2 + omega[1]*f_t**2 + omega[2]*f_c**2
 
 
 # 2.2 路径点评价函数
