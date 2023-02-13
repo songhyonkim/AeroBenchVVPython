@@ -8,6 +8,7 @@
 > .venv\Scripts\activate.bat
 (.venv) > python.exe -m pip install --upgrade pip
 (.venv) > pip install -r requirements.txt
+(.venv) > pip install slycot-0.4.0-cp39-cp39-win_amd64.whl
 (.venv) > DO SOMETHING...
 ```
 
