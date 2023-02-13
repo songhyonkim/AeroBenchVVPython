@@ -1,4 +1,18 @@
-﻿<p align="center"> <img src="anim3d.gif"/> </p>
+﻿# Update
+
+### Set Python virtual environment
+
+```
+> cd 'folder of AeroBenchVVPython'
+> python -m venv .venv
+> .venv\Scripts\activate.bat
+(.venv) > python.exe -m pip install --upgrade pip
+(.venv) > pip install -r requirements.txt
+(.venv) > DO SOMETHING...
+```
+
+
+<p align="center"> <img src="anim3d.gif"/> </p>
 
 Note: This is the v2 branch of the code, which is now a python3 project and includes more modularity and general simulation capabilities. For the original benchmark paper version see the v1 branch.
 
