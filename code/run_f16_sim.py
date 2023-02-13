@@ -3,10 +3,6 @@ Stanley Bak
 run_f16_sim python version
 '''
 
-import sys
-sys.path.append('..')
-sys.path.append('.')
-
 import time
 
 import numpy as np
