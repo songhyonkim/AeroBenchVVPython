@@ -3,9 +3,6 @@
 copied from matlab v2
 '''
 
-import sys
-sys.path.append('./src')
-
 import math
 
 import numpy as np

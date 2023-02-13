@@ -4,9 +4,6 @@ Stanley Bak
 should match 'waypoint' scenario from matlab version
 '''
 
-import sys
-sys.path.append('./src')
-
 import math
 
 from numpy import deg2rad
