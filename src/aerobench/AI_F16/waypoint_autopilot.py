@@ -2,6 +2,8 @@
 
 ported from matlab v2
 '''
+import sys
+sys.path.append('./src')
 
 from math import pi, atan2, sqrt, sin, cos, asin
 

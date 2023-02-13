@@ -3,6 +3,8 @@ Stanley Bak
 
 should match 'u_turn' scenario from matlab version
 '''
+import sys
+sys.path.append('./src')
 
 import math
 

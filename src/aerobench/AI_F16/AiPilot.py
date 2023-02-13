@@ -1,3 +1,6 @@
+import sys
+sys.path.append('./src')
+
 import math
 import sys
 import random
@@ -8,7 +11,10 @@ import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D  # 空间三维画图
 import matplotlib.animation as animation
 from aerobench.run_f16_sim import run_f16_sim
-from aerobench.examples.waypoint.waypoint_autopilot import WaypointAutopilot
+
+# from aerobench.examples.waypoint.waypoint_autopilot import WaypointAutopilot
+from waypoint_autopilot import WaypointAutopilot
+
 import GaTest
 from SearchSpace import SearchSpace
 from Sphere import sphere
@@ -87,13 +93,16 @@ def simulate_pathPlanner(now_state, wpt_next, max_h, filename, tmax, step):
 # 主函数
 def main():
     # 若输入了文件名，则生成动态图
-    if len(sys.argv) > 1 and (sys.argv[1].endswith('.mp4') or sys.argv[1].endswith('.gif')):
-        filename = sys.argv[1]
-        print(f"saving result to '{filename}'")
-    else:
-        filename = ''
-        print("Plotting to the screen. To save a video, pass a command-line argument ending with '.mp4' or '.gif'.")
+    # if len(sys.argv) > 1 and (sys.argv[1].endswith('.mp4') or sys.argv[1].endswith('.gif')):
+    #     filename = sys.argv[1]
+    #     print(f"saving result to '{filename}'")
+    # else:
+    #     filename = ''
+    #     print("Plotting to the screen. To save a video, pass a command-line argument ending with '.mp4' or '.gif'.")
+    #     # exit()
 
+    filename = 'output.gif'
+    print(f"saving result to '{filename}'")
 
     # 起点和终点
     start = np.array([2000, 5000, 3500])

@@ -4,6 +4,9 @@ Stanley Bak
 should match 'GCAS' scenario from matlab version
 '''
 
+import sys
+sys.path.append('./src')
+
 import math
 
 from numpy import deg2rad
