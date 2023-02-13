@@ -1,5 +1,7 @@
-import math
 import sys
+sys.path.append('./code')
+
+import math
 import random
 import numpy as np
 from numpy import deg2rad
@@ -87,12 +89,16 @@ def simulate_pathPlanner(now_state, wpt_next, max_h, filename, tmax, step):
 # 主函数
 def main():
     # 若输入了文件名，则生成动态图
-    if len(sys.argv) > 1 and (sys.argv[1].endswith('.mp4') or sys.argv[1].endswith('.gif')):
-        filename = sys.argv[1]
-        print(f"saving result to '{filename}'")
-    else:
-        filename = ''
-        print("Plotting to the screen. To save a video, pass a command-line argument ending with '.mp4' or '.gif'.")
+    # if len(sys.argv) > 1 and (sys.argv[1].endswith('.mp4') or sys.argv[1].endswith('.gif')):
+    #     filename = sys.argv[1]
+    #     print(f"saving result to '{filename}'")
+    # else:
+    #     filename = ''
+    #     print("Plotting to the screen. To save a video, pass a command-line argument ending with '.mp4' or '.gif'.")
+    #     exit()
+
+    filename = 'output.mp4'
+    print(f"saving result to '{filename}'")    
 
 
     # 起点和终点
