@@ -70,7 +70,9 @@ def plot_overhead(run_sim_result, waypoints=None, llc=None):
 
     ax.set_ylabel('North / South Position (ft)')
     ax.set_xlabel('East / West Position (ft)')
-    
+
+    ax.view_init(azim=-90, elev=90)    
+
     ax.set_title('Overhead Plot')
 
     ax.axis('equal')

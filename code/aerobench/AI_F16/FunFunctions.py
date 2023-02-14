@@ -95,6 +95,8 @@ def plot_point(pos_data):
     ax.set_ylabel('Y', fontdict={'size': 15, 'color': 'red'})
     ax.set_zlabel('Z', fontdict={'size': 15, 'color': 'red'})
 
+    ax.view_init(azim=-90, elev=90)
+
     ax.scatter(pos_data[:, 0], pos_data[:, 1], pos_data[:, 2], 'blue', marker='o')
     plt.show()
 

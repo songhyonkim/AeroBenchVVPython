@@ -97,14 +97,14 @@ def main():
     #     print("Plotting to the screen. To save a video, pass a command-line argument ending with '.mp4' or '.gif'.")
     #     exit()
 
-    filename = 'output.mp4'
+    filename = 'output.gif'
     print(f"saving result to '{filename}'")    
 
 
     # 起点和终点
     start = np.array([2000, 5000, 3500])
     # end = np.array([42000, 40000, 5000])
-    end = np.array([80000, 80000, 6000])
+    end = np.array([48000, 77000, 6000])
 
     # 我方飞机初始状态
     state = [400, deg2rad(2.15), 0, 0, 0, 0, 0, 0, 0, 0, 0, 3000, 9]
@@ -155,6 +155,8 @@ def main():
     ax.scatter(start[0], start[1], start[2], 'g')
     ax.scatter(end[0], end[1], end[2], 'r')
 
+    ax.view_init(azim=-90, elev=90)
+
     ax.plot_surface(threat_sphere1[0], threat_sphere1[1], threat_sphere1[2], linewidth=0.0)
     ax.plot_surface(threat_sphere2[0], threat_sphere2[1], threat_sphere2[2], linewidth=0.0)
     ax.plot3D(best_wpts[:, 0], best_wpts[:, 1], best_wpts[:, 2], 'blue', linestyle='-', marker='o')
@@ -174,9 +176,10 @@ def main():
 
     # 画实际航迹图
     anim3d.make_anim(res, filename, threat_list, f16_scale=100, viewsize=10000, viewsize_z=10000, trail_pts=np.inf,
-    elev=54, azim=-200, skip_frames=skip_override,
+    elev=90, azim=-90, skip_frames=skip_override,
     chase=True, fixed_floor=True, init_extra=init_extra, update_extra=update_extra)
-    
+    # elev=54, azim=-200
+
     # # 迭代次数加一
     # iteration = iteration + 1
 

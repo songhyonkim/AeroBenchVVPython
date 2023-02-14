@@ -56,6 +56,8 @@ def main():
     ax.set_ylabel('Y', fontdict={'size': 15, 'color': 'red'})
     ax.set_zlabel('Z', fontdict={'size': 15, 'color': 'red'})
 
+    ax.view_init(azim=-90, elev=90)
+
     while(1):
         distance = Euclid(target_pos, missle.pos)
 

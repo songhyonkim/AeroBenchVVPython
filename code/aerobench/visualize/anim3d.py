@@ -145,6 +145,8 @@ def make_anim(res, filename, threat, viewsize=1000, viewsize_z=1000, f16_scale=3
     ax.set_ylabel('Y [ft]', fontsize=14)
     ax.set_zlabel('Altitude [ft]', fontsize=14)
 
+    ax.view_init(azim=-90, elev=90)
+
     ax.plot_surface(threat[0][0], threat[0][1], threat[0][2], linewidth=0.0)
     ax.plot_surface(threat[1][0], threat[1][1], threat[1][2], linewidth=0.0)
 
@@ -350,7 +352,7 @@ def make_anim(res, filename, threat, viewsize=1000, viewsize_z=1000, f16_scale=3
             anim_obj.save(filename, dpi=60, writer='imagemagick') # dpi was 80
             print("Finished saving to {} in {:.1f} sec".format(filename, time.time() - start))
         else:
-            fps = 40
+            fps = 24
             codec = 'libx264'
 
             print("\nSaving '{}' at {:.2f} fps using ffmpeg with codec '{}'.".format(filename, fps, codec))
